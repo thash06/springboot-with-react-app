@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import logo from './logo.svg';
-import './App.css';
+import './css/App.css';
 
 class App extends Component {
 
@@ -26,6 +26,7 @@ class App extends Component {
                     <h1 className="App-title">{this.state.message}</h1>
                 </header>
                 <p className="App-intro">
+                    <h1>Welcome to React!</h1>
                 </p>
             </div>
         );
