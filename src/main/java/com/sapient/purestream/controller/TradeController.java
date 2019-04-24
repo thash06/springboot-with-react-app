@@ -45,7 +45,7 @@ public class TradeController {
         if (!tradeById.isPresent()) {
             throw new ResourceNotFoundException("Trade with ID " + id + " NOT FOUND");
         }
-        return new ResponseEntity<>(tradeById, HttpStatus.OK);
+        return new ResponseEntity<>(tradeById.get(), HttpStatus.OK);
     }
 
     /*
