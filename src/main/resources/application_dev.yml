@@ -3,6 +3,4 @@ spring:
     mongodb:
       host: localhost
       port: 27017
-      database: trade
-      username:
-      password:
+      database: Trades
