@@ -11,7 +11,7 @@ class TradeOrderScreen extends Component {
                 <Switch>
                     <Route path="/" exact component={ListTradesComponent} />
                     <Route path="/trades" exact component={ListTradesComponent} />
-                    <Route path="/trades/:id" exact component={TradeComponent} />
+                    <Route path="/trades/addNew" exact component={TradeComponent} />
                 </Switch>
             </Router>
         )

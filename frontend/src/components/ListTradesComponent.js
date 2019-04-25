@@ -40,7 +40,7 @@ class ListTradesComponent extends Component {
     }
 
     addTrade() {
-        this.props.history.push(`/trades/-1`)
+        this.props.history.push(`/trades/addNew`)
     }
 
     render() {
@@ -72,7 +72,6 @@ class ListTradesComponent extends Component {
                                         <td>{trades.orderStatus}</td>
                                         <td><button className="btn btn-warning" onClick={() => this.deleteTrade(trades.id)}>Delete</button></td>
                                     </tr>
-
                             )
                         }
                         </tbody>

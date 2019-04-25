@@ -6,7 +6,6 @@ import TradeDataService from '../service/TradeDataService';
 class TradeComponent extends Component {
     constructor(props) {
         super(props)
-        this.state = { id: this.props.match.params.id,}
         this.onSubmit = this.onSubmit.bind(this)
     }
 
@@ -47,7 +46,8 @@ class TradeComponent extends Component {
                                     </fieldset>
                                     <fieldset className="form-group">
                                         <label>Side</label>
-                                        <Field className="custom-select" component="select" name="side">
+                                        <Field className="custom-select" component="select" name="side" required>
+                                            <option value="">SELECT ONE</option>
                                             <option value="BUY">BUY</option>
                                             <option value="SELL">SELL</option>
                                         </Field>
@@ -62,7 +62,8 @@ class TradeComponent extends Component {
                                     </fieldset>
                                     <fieldset className="form-group">
                                         <label>Order Status</label>
-                                        <Field className="form-control" component="select" name="orderStatus">
+                                        <Field className="form-control" component="select" name="orderStatus" required>
+                                            <option value="">SELECT ONE</option>
                                             <option value="NEW">NEW</option>
                                             <option value="STREAMING">STREAMING</option>
                                             <option value="COMPLETE">COMPLETE</option>
