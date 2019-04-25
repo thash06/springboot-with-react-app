@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -26,7 +27,7 @@ public class TradeController {
     }
 
     @PostMapping("/trade")
-    public ResponseEntity<Object> createTrade(@RequestBody Trade trade) {
+    public ResponseEntity<Trade> createTrade(@RequestBody Trade trade) {
         Long _id = sequeneGeneratorService.generateSequence("Trades");
         trade.setId(_id);
         trade.setOrderCreated(new Date());
@@ -48,18 +49,32 @@ public class TradeController {
         return new ResponseEntity<>(tradeById.get(), HttpStatus.OK);
     }
 
+    @DeleteMapping("/deleteById/{id}")
+    public ResponseEntity<Object> deleteById(@PathVariable @NotNull Long id) throws ResourceNotFoundException {
+        Optional<Trade> tradeById = this.tradeService.findById(id);
+        if (!tradeById.isPresent()) {
+            throw new ResourceNotFoundException("Trade with ID " + id + " NOT FOUND");
+        }
+        this.tradeService.deleteById(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
     /*
      * exposing enums will avoid hardcoding in front end
      */
     @GetMapping("/sides")
     public ResponseEntity<Object> getSidesEnum() {
-        List<Side> sides = Arrays.asList(Side.values());
-        return new ResponseEntity<>(sides, HttpStatus.OK);
+        Map<String, String> sidesMap = Arrays.stream(Side.values())
+                .collect(Collectors.toMap(Enum::toString, Enum::toString, (a, b) -> b));
+        return new ResponseEntity<>(sidesMap, HttpStatus.OK);
     }
 
     @GetMapping("/orderstatus")
     public ResponseEntity<Object> getOrderStatusEnum() {
-        List<OrderStatus> orderStatus = Arrays.asList(OrderStatus.values());
-        return new ResponseEntity<>(orderStatus, HttpStatus.OK);
+        Map<String, String> orderMap;
+        OrderStatus[] values = OrderStatus.values();
+        orderMap = Arrays.stream(values).collect(Collectors.toMap(Enum::toString, Enum::toString, (a, b) -> b));
+        return new ResponseEntity<>(orderMap, HttpStatus.OK);
     }
 }

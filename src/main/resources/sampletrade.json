@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "quantity": 1,
+    "side": "BUY",
+    "ticker": "MSFT",
+    "orderType": "BUY",
+    "orderStatus": "NEW",
+    "orderCreated": "2019-04-24T22:25:53.825+0000"
+  },
+  {
+    "id": 2,
+    "quantity": 2,
+    "side": "SELL",
+    "ticker": "GOOG",
+    "orderType": "SELL",
+    "orderStatus": "NEW",
+    "orderCreated": "2019-04-24T22:25:53.825+0000"
+  },
+  {
+    "id": 3,
+    "quantity": 3,
+    "side": "SELL",
+    "ticker": "BAC",
+    "orderType": "SELL",
+    "orderStatus": "STREAMING",
+    "orderCreated": "2019-04-24T22:25:53.825+0000"
+  }
+]

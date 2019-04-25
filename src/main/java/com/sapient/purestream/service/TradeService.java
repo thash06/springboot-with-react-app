@@ -29,4 +29,8 @@ public class TradeService {
         return this.tradeRepository.findById(id);
     }
 
+    public void deleteById(Long id) {
+        this.tradeRepository.deleteById(id);
+    }
+
 }
