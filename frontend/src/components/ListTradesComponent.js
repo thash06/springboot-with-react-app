@@ -7,7 +7,7 @@ class ListTradesComponent extends Component {
         super(props)
         this.state = {trades: [], message: null}
         this.deleteTrade = this.deleteTrade.bind(this)
-        this.findOne = this.findOne.bind(this)
+       /* this.findOne = this.findOne.bind(this)*/
         this.addTrade = this.addTrade.bind(this)
         this.refreshTrades = this.refreshTrades.bind(this)
     }
@@ -34,9 +34,11 @@ class ListTradesComponent extends Component {
     }
 
     findOne(id) {
+        /*
         TradeDataService.findById(id).then(() => {
             this.refreshTrades()
         })
+        */
     }
 
     addTrade() {

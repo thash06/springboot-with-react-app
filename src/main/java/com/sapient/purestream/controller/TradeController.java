@@ -9,7 +9,6 @@ import com.sapient.purestream.service.TradeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
