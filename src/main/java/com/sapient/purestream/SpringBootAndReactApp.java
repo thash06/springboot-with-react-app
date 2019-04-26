@@ -41,12 +41,12 @@ public class SpringBootAndReactApp implements CommandLineRunner {
            this.tradeRepository.save(trade);
        }*/
 
-        Trade t1 = new Trade();
+       /* Trade t1 = new Trade();
         t1.setId(1L);
         t1.setQuantity(1);
         t1.setSide(Side.BUY);
         t1.setTicker("MSFT");
-        t1.setOrderType("OrderType");
+        t1.setOrderType("5-15%");
         t1.setOrderStatus(OrderStatus.NEW);
 
         Trade t2 = new Trade();
@@ -54,10 +54,10 @@ public class SpringBootAndReactApp implements CommandLineRunner {
         t2.setQuantity(2);
         t2.setSide(Side.SELL);
         t2.setTicker("GOOG");
-        t2.setOrderType("OrderType");
-        t2.setOrderStatus(OrderStatus.STREAMING);
+        t2.setOrderType("5-15%");
+        t2.setOrderStatus(OrderStatus.NEW);
 
         this.tradeRepository.save(t1);
-        this.tradeRepository.save(t2);
+        this.tradeRepository.save(t2);*/
     }
 }

@@ -14,14 +14,14 @@ class ListTradesComponent extends Component {
     }
 
     componentDidMount() {
-            this.refreshTrades();
-            this.interval = setInterval(() => {
+           this.refreshTrades();
+           this.timeout = setTimeout(() => {
                 this.processOrder()
             }, 5000)
     }
 
     componentWillUnmount() {
-        clearInterval(this.interval);
+        clearInterval(this.timeout);
     }
 
     refreshTrades() {
@@ -44,12 +44,7 @@ class ListTradesComponent extends Component {
         TradeDataService.processOrder()
             .then((response) => {
                     console.log("Array Length:" + response.data.length)
-                    if(response.data.length !=0) {
-                        this.setState({message: `updated`})
-                    }
-                    else {
-                        this.setState({message: null})
-                    }
+                    this.setState({message: `updated`})
                     this.refreshTrades()
                 }
             )

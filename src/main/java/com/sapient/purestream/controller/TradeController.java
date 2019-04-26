@@ -5,31 +5,27 @@ import com.sapient.purestream.constants.Side;
 import com.sapient.purestream.exceptions.ResourceNotFoundException;
 import com.sapient.purestream.model.Trade;
 import com.sapient.purestream.service.SequeneGeneratorService;
-import com.sapient.purestream.service.TradeProcessor;
 import com.sapient.purestream.service.TradeService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import javax.validation.constraints.NotNull;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
+@Slf4j
 public class TradeController {
 
     private final TradeService tradeService;
     private final SequeneGeneratorService sequeneGeneratorService;
-    // private Queue<Trade> queue;
 
     public TradeController(TradeService tradeService, SequeneGeneratorService sequeneGeneratorService) {
         this.tradeService = tradeService;
         this.sequeneGeneratorService = sequeneGeneratorService;
-        //  this.queue = new LinkedList<>();
+
     }
 
     @PostMapping("/trade")
@@ -57,8 +53,9 @@ public class TradeController {
     }
 
     @GetMapping("/processOrder")
-    public ResponseEntity<Object> getCompletedOrders() {
-        return new ResponseEntity<>(processOrder(), HttpStatus.OK);
+    public ResponseEntity<Object> getStreamingOrders() {
+        List<Trade> trades = this.tradeService.findByOrderStatus(OrderStatus.NEW.toString());
+        return new ResponseEntity<>(getStreamingMatch(trades), HttpStatus.OK);
     }
 
     @DeleteMapping("/deleteById/{id}")
@@ -71,22 +68,6 @@ public class TradeController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    public List<Trade> processOrder() {
-        List<Trade> trades = this.tradeService.findByOrderTypes(OrderStatus.NEW.toString());
-        ExecutorService service = Executors.newCachedThreadPool();
-
-        for (Trade t : trades) {
-            service.execute(new TradeProcessor(t, this.tradeService));
-        }
-        service.shutdown();
-        try {
-            service.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        return trades;
-    }
 
     /*
      * exposing enums will avoid hardcoding in front end
@@ -96,5 +77,18 @@ public class TradeController {
         Map<String, String> sidesMap = Arrays.stream(Side.values())
                 .collect(Collectors.toMap(Enum::toString, Enum::toString, (a, b) -> b));
         return new ResponseEntity<>(sidesMap, HttpStatus.OK);
+    }
+
+    private List<Trade> getStreamingMatch(List<Trade> trades) {
+        List<Trade> matched = new ArrayList<>();
+        trades.stream().map(t -> this.tradeService.findByOrderTypeSideTicker(t.getOrderType(),
+                t.getSide().toString(), t.getTicker()))
+                .filter(byOrderTypeSideTicker -> byOrderTypeSideTicker.size() > 0)
+                .flatMap(Collection::stream).forEach(inner -> {
+            inner.setOrderStatus(OrderStatus.STREAMING);
+            this.tradeService.createTrade(inner);
+            matched.add(inner);
+        });
+        return matched;
     }
 }

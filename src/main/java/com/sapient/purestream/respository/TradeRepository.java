@@ -11,4 +11,7 @@ import java.util.List;
 public interface TradeRepository extends MongoRepository<Trade, Long> {
     @Query("{ 'orderStatus' : ?0 }")
     List<Trade> findByOrderStatus(String orderStatus);
+
+    @Query("{'$and' : [{'orderType' : ?0}, {'side' : {$ne: ?1}}, {'ticker':?2}] }")
+    List<Trade> findByOrdertypeSideAndTicker(String orderType, String side, String ticker);
 }

@@ -29,12 +29,14 @@ public class TradeService {
         return this.tradeRepository.findById(id);
     }
 
-    public void deleteById(Long id) {
-        this.tradeRepository.deleteById(id);
+    public void deleteById(Long id) { this.tradeRepository.deleteById(id); }
+
+    public List<Trade> findByOrderStatus(String type) {
+        return this.tradeRepository.findByOrderStatus(type);
     }
 
-    public List<Trade> findByOrderTypes(String type) {
-        return this.tradeRepository.findByOrderStatus(type);
+    public List<Trade> findByOrderTypeSideTicker(String orderType, String side, String ticker) {
+        return this.tradeRepository.findByOrdertypeSideAndTicker(orderType, side, ticker);
     }
 
 }
