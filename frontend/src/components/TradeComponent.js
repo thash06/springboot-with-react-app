@@ -60,15 +60,6 @@ class TradeComponent extends Component {
                                         <label>OrderType</label>
                                         <Field className="form-control" type="text" name="orderType" required/>
                                     </fieldset>
-                                    <fieldset className="form-group">
-                                        <label>Order Status</label>
-                                        <Field className="form-control" component="select" name="orderStatus" required>
-                                            <option value="">SELECT ONE</option>
-                                            <option value="NEW">NEW</option>
-                                            <option value="STREAMING">STREAMING</option>
-                                            <option value="COMPLETE">COMPLETE</option>
-                                        </Field>
-                                    </fieldset>
                                     <button className="btn btn-success" type="submit">Save</button>
                                 </Form>
                             )

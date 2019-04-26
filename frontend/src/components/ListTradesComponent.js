@@ -10,10 +10,18 @@ class ListTradesComponent extends Component {
        /* this.findOne = this.findOne.bind(this)*/
         this.addTrade = this.addTrade.bind(this)
         this.refreshTrades = this.refreshTrades.bind(this)
+        this.processOrder = this.processOrder.bind(this)
     }
 
     componentDidMount() {
-        this.refreshTrades();
+            this.refreshTrades();
+            this.interval = setInterval(() => {
+                this.processOrder()
+            }, 5000)
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.interval);
     }
 
     refreshTrades() {
@@ -32,7 +40,14 @@ class ListTradesComponent extends Component {
                 }
             )
     }
-
+    processOrder() {
+        TradeDataService.processOrder()
+            .then(() => {
+                    this.setState({message: `updated`})
+                    this.refreshTrades()
+                }
+            )
+    }
     findOne(id) {
         /*
         TradeDataService.findById(id).then(() => {

@@ -33,4 +33,8 @@ public class TradeService {
         this.tradeRepository.deleteById(id);
     }
 
+    public List<Trade> findByOrderTypes(String type) {
+        return this.tradeRepository.findByOrderStatus(type);
+    }
+
 }

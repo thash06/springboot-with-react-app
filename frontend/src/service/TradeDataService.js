@@ -29,6 +29,10 @@ class TradeDataService {
         return axios.get(`${TRADES_API_URL}/orderstatus`)
     }
 
+    processOrder() {
+        return axios.get(`${TRADES_API_URL}/processOrder`)
+    }
+
     getAPIUrl() {
         return API_URL;
     }
