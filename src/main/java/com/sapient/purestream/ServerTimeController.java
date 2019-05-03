@@ -11,4 +11,6 @@ public class ServerTimeController {
     public String serverTime() {
         return "Server time: " + new Date() + "\n";
     }
+
+
 }
