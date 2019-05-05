@@ -12,6 +12,7 @@ class TradeComponent extends Component {
     onSubmit(values) {
         let trade = {
             quantity: values.quantity,
+            remainingQuantity: values.quantity,
             side: values.side,
             ticker: values.ticker,
             orderType: values.orderType,

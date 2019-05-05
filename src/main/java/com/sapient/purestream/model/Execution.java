@@ -1,36 +1,36 @@
 package com.sapient.purestream.model;
 
-import com.sapient.purestream.constants.OrderStatus;
-import com.sapient.purestream.constants.Side;
+import com.sapient.purestream.constants.ExecutionStatus;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
-@Document(collection = "Trades")
+@Document(collection = "Executions")
 @Data
-public class Trade {
+public class Execution {
     @Id
-    private Long id;
-    private Integer quantity;
-    private Integer remainingQuantity = -1;
-    private Side side;
+    private long id;
     private String ticker;
-    private String orderType;
-    private OrderStatus orderStatus;
-    private Date orderCreated;
+    private int quantity;
+    private double price;
+    private long buyTradeId;
+    private long sellTradeId;
+    private ExecutionStatus execStatus;
+    private LocalDateTime created;
 
-    public Trade() {}
+    public Execution() {
+    }
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof Trade))
+        if (o == null || !(o instanceof Execution))
             return false;
-        Trade t = (Trade) o;
+        Execution t = (Execution) o;
         if (this.id == t.id && this.ticker.equals(t.ticker)
-                && this.orderType.equals(t.orderType)
-                && this.quantity == t.quantity)
+                && this.quantity == t.quantity && this.buyTradeId == t.buyTradeId
+                && this.sellTradeId == t.sellTradeId)
             return true;
         else
             return false;
@@ -47,4 +47,5 @@ public class Trade {
 
         return hash;
     }
+
 }

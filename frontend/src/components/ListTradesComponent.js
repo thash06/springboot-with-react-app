@@ -71,6 +71,7 @@ class ListTradesComponent extends Component {
                         <thead>
                         <tr>
                             <th>Quantity</th>
+                            <th>RemainingQuantity</th>
                             <th>Side</th>
                             <th>SYMBOL</th>
                             <th>OrderType</th>
@@ -84,6 +85,7 @@ class ListTradesComponent extends Component {
                                 trades =>
                                     <tr key={trades.id}>
                                         <td>{trades.quantity}</td>
+                                        <td>{trades.remainingQuantity}</td>
                                         <td>{trades.side}</td>
                                         <td>{trades.ticker}</td>
                                         <td>{trades.orderType}</td>
