@@ -12,6 +12,8 @@ import com.sapient.purestream.respository.TradeRepository;
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.observables.ConnectableObservable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,6 +23,8 @@ import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
 
 public class ExecutionWorker implements Runnable {
+    private static final Logger LOG = LoggerFactory
+            .getLogger(ExecutionWorker.class);
 
     private final TradeRepository tradeRepository;
     private final ExecutionRepository executionRepository;
@@ -43,17 +47,10 @@ public class ExecutionWorker implements Runnable {
         this.executionRepository = executionRepository;
         this.consolidatedTapeService = consolidatedTapeService;
         this.sequeneGeneratorService = sequeneGeneratorService;
-
-        System.out.println("Trade exec worker starting ...");
     }
 
     class EWTimerTask extends TimerTask {
         public void run() {
-
-            //  System.out.println("TE timer task runs ...");
-
-            //  System.out.println("execMap size: " + execMap.size());
-
             if (execMap.isEmpty()) {
                 disposable.dispose();
                 cleanMap();
@@ -83,6 +80,7 @@ public class ExecutionWorker implements Runnable {
     }
 
     public void run() {
+        LOG.info("Trade exec worker starting ...");
 
         ConnectableObservable<ConsolidatedTape> ctapestream =
                 consolidatedTapeService.getConsolidatedTape();
@@ -92,8 +90,6 @@ public class ExecutionWorker implements Runnable {
 
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new EWTimerTask(), 0, period * 5000);
-
-        // System.out.println("TExec worker runs ...");
 
         ctapestream.map(ct -> {
             List<ExecutionToken> tokens = execMap.get(ct.getTicker());
@@ -115,7 +111,6 @@ public class ExecutionWorker implements Runnable {
             return ct;
         }).subscribe();
 
-        //System.out.println("TExec worker waits ...");
         try {
             clatch.await();
         } catch (InterruptedException e) {
@@ -123,7 +118,8 @@ public class ExecutionWorker implements Runnable {
         }
 
         timer.cancel();
-        // System.out.println("TExec worker done ...");
+
+        LOG.info("Trade exec worker exiting ...");
     }
 
     private boolean processExecution(ExecutionToken execToken) {

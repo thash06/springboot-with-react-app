@@ -1,6 +1,8 @@
 package com.sapient.purestream;
 
 import com.sapient.purestream.respository.TradeRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -11,6 +13,8 @@ import org.springframework.web.client.RestTemplate;
 
 @Component
 public class RestClient {
+    private static final Logger LOG = LoggerFactory
+            .getLogger(RestClient.class);
 
     private final String url;
     private final TradeRepository tradeRepository;
@@ -32,7 +36,7 @@ public class RestClient {
 
         ResponseEntity<String> response = restTemplate.postForEntity(url, null, String.class);
 
-        System.out.println("RestClient: " + response.getStatusCode());
+        LOG.info("RestClient: " + response.getStatusCode());
 
         return response;
     }

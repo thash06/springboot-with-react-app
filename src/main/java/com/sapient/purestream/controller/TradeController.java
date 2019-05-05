@@ -1,14 +1,14 @@
 package com.sapient.purestream.controller;
 
-import com.sapient.purestream.RestClient;
 import com.sapient.purestream.constants.OrderStatus;
 import com.sapient.purestream.constants.Side;
 import com.sapient.purestream.exceptions.ResourceNotFoundException;
 import com.sapient.purestream.model.Trade;
 import com.sapient.purestream.service.SequeneGeneratorService;
-import com.sapient.purestream.service.TradeExecutionService;
 import com.sapient.purestream.service.TradeService;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,18 +21,15 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 @Slf4j
 public class TradeController {
+    private static final Logger LOG = LoggerFactory
+            .getLogger(TradeController.class);
 
     private final TradeService tradeService;
     private final SequeneGeneratorService sequeneGeneratorService;
-    private final TradeExecutionService tradeExecutionService;
-    private final RestClient restrClient;
 
-    public TradeController(TradeService tradeService, SequeneGeneratorService sequeneGeneratorService
-            , TradeExecutionService tradeExecutionService, RestClient restrClient) {
+    public TradeController(TradeService tradeService, SequeneGeneratorService sequeneGeneratorService) {
         this.tradeService = tradeService;
         this.sequeneGeneratorService = sequeneGeneratorService;
-        this.tradeExecutionService = tradeExecutionService;
-        this.restrClient = restrClient;
     }
 
     @PostMapping("/trade")
@@ -98,7 +95,7 @@ public class TradeController {
             matched.add(inner);
         }); */
 
-        trades.stream().map(t -> {
+        trades.stream().forEach(t -> {
             trades.stream().filter(t2 -> t2.getSide() != t.getSide()
                     && t2.getTicker().equals(t.getTicker())
                     && t2.getOrderType().equals(t.getOrderType())
@@ -107,15 +104,9 @@ public class TradeController {
                 this.tradeService.createTrade(t);
                 matched.add(t);
             });
-            return t;
-        }).count();
+        });
 
-        // if (!matched.isEmpty()) {
-        //tradeExecutionService.tradeExecution(matched);
-        // ResponseEntity<String> response = restrClient.sendExecutionMsg(matched);
-        // System.out.println("TradeController: returned from exec service : " + response.getBody());
-        // }
-        System.out.println("TradeController: complete");
+        LOG.info("TradeController: complete");
 
         return matched;
     }
