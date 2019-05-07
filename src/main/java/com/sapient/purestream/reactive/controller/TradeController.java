@@ -1,6 +1,7 @@
 package com.sapient.purestream.reactive.controller;
 
 import com.sapient.purestream.constants.OrderStatus;
+import com.sapient.purestream.exceptions.ResourceNotFoundException;
 import com.sapient.purestream.model.Trade;
 import com.sapient.purestream.reactive.service.MongoSequenceGeneratorService;
 import com.sapient.purestream.reactive.service.TradeService;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 
 /**
@@ -33,11 +35,13 @@ public class TradeController {
 
     @GetMapping("/showAll")
     public ResponseEntity<Object> displayAll() {
+        LOG.info(" displayAll orders ...");
         return new ResponseEntity<>(this.tradeService.displayTrades(), HttpStatus.OK);
     }
 
     @PostMapping("/trade")
     public ResponseEntity<Mono<Trade>> createTrade(@RequestBody Trade trade) {
+        LOG.info(" createTrade {} ...", trade);
         Long id = mongoSequenceGeneratorService.generateSequence("Trades");
         trade.setId(id);
         trade.setOrderCreated(new Date());
@@ -45,5 +49,16 @@ public class TradeController {
         Mono<Trade> newTrade = this.tradeService.createTrade(trade);
         ResponseEntity<Mono<Trade>> monoResponseEntity = new ResponseEntity<>(newTrade, HttpStatus.CREATED);
         return monoResponseEntity;
+    }
+
+    @DeleteMapping("/deleteById/{id}")
+    public Mono<ResponseEntity<Void>> deleteById(@PathVariable @NotNull Long id) throws ResourceNotFoundException {
+        LOG.info(" deleteById {} ...", id);
+        return tradeService.findById(id)
+                .flatMap(existingOrder ->
+                        tradeService.deleteById(id)
+                                .then(Mono.just(new ResponseEntity<Void>(HttpStatus.OK)))
+                )
+                .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 }
