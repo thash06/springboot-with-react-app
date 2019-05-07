@@ -11,14 +11,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api")
+//@RequestMapping("/api")
 @Slf4j
 public class TradeController {
     private static final Logger LOG = LoggerFactory
@@ -32,20 +35,20 @@ public class TradeController {
         this.sequeneGeneratorService = sequeneGeneratorService;
     }
 
-    @PostMapping("/trade")
-    public ResponseEntity<Trade> createTrade(@RequestBody Trade trade) {
-        Long _id = sequeneGeneratorService.generateSequence("Trades");
-        trade.setId(_id);
-        trade.setOrderCreated(new Date());
-        trade.setOrderStatus(OrderStatus.NEW);
-        Trade newTrade = this.tradeService.createTrade(trade);
-        return new ResponseEntity<>(newTrade, HttpStatus.CREATED);
-    }
+//    @PostMapping("/trade")
+//    public ResponseEntity<Trade> createTrade(@RequestBody Trade trade) {
+//        Long _id = sequeneGeneratorService.generateSequence("Trades");
+//        trade.setId(_id);
+//        trade.setOrderCreated(new Date());
+//        trade.setOrderStatus(OrderStatus.NEW);
+//        Trade newTrade = this.tradeService.createTrade(trade);
+//        return new ResponseEntity<>(newTrade, HttpStatus.CREATED);
+//    }
 
-    @GetMapping("/showAll")
-    public ResponseEntity<Object> displayAll() {
-        return new ResponseEntity<>(this.tradeService.displayTrades(), HttpStatus.OK);
-    }
+//    @GetMapping("/showAll")
+//    public ResponseEntity<Object> displayAll() {
+//        return new ResponseEntity<>(this.tradeService.displayTrades(), HttpStatus.OK);
+//    }
 
     @GetMapping("/findById/{id}")
     public ResponseEntity<Object> findById(@PathVariable @NotNull Long id) {
