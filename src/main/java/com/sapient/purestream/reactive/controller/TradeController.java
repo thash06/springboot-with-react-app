@@ -40,15 +40,18 @@ public class TradeController {
     }
 
     @PostMapping("/trade")
-    public ResponseEntity<Mono<Trade>> createTrade(@RequestBody Trade trade) {
+    public Mono<ResponseEntity<Void>> createTrade(@RequestBody Trade trade) {
         LOG.info(" createTrade {} ...", trade);
-        Long id = mongoSequenceGeneratorService.generateSequence("Trades");
-        trade.setId(id);
-        trade.setOrderCreated(new Date());
-        trade.setOrderStatus(OrderStatus.NEW);
-        Mono<Trade> newTrade = this.tradeService.createTrade(trade);
-        ResponseEntity<Mono<Trade>> monoResponseEntity = new ResponseEntity<>(newTrade, HttpStatus.CREATED);
-        return monoResponseEntity;
+        return Mono.just(mongoSequenceGeneratorService.generateSequence("Trades"))
+                .flatMap(seqNo -> {
+                            trade.setId(seqNo);
+                            trade.setOrderCreated(new Date());
+                            trade.setOrderStatus(OrderStatus.NEW);
+
+                            return tradeService.createTrade(trade)
+                                    .then(Mono.just(new ResponseEntity<Void>(HttpStatus.OK)));
+                        }
+                ).defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/deleteById/{id}")
