@@ -14,7 +14,7 @@ public class ConsolidatedTapeService {
 
     private Subject<ConsolidatedTape> subject = null;
 
-    private String[] names = {"IBM", "MSFT", "BAC"};
+    private String[] names = {"IBM", "MSFT", "AAPL"};
     private Map<String, Double> ticks = new HashMap<>();
 
     private class CTTimerTask extends TimerTask {
@@ -43,7 +43,13 @@ public class ConsolidatedTapeService {
 
             ticks.put(name, newPrice);
 
-            subject.onNext(new ConsolidatedTape(name, quantity, newPrice, LocalDateTime.now()));
+            ConsolidatedTape consolidTape = new ConsolidatedTape();
+            consolidTape.setTicker(name);
+            consolidTape.setQuantity(quantity);
+            consolidTape.setPrice(newPrice);
+            consolidTape.setTimestamp(LocalDateTime.now());
+
+            subject.onNext(consolidTape);
         }
 
     }
@@ -52,7 +58,7 @@ public class ConsolidatedTapeService {
 
         ticks.put("IBM", 140.27);
         ticks.put("MSFT", 130.60);
-        ticks.put("BAC", 30.58);
+        ticks.put("AAPL", 203.73);
 
         subject = PublishSubject.<ConsolidatedTape>create().toSerialized();
         Timer timer = new Timer();

@@ -5,12 +5,14 @@ public class ExecutionToken {
     private Trade buyTrade;
     private Trade sellTrade;
     private ConsolidatedTape ctape;
+    private volatile boolean isInExec;
 
     public ExecutionToken(String ticker, Trade buyTrade, Trade sellTrade) {
         this.ticker = ticker;
         this.buyTrade = buyTrade;
         this.sellTrade = sellTrade;
         this.ctape = null;
+        this.isInExec = false;
     }
 
     public String getTicker() {
@@ -32,4 +34,13 @@ public class ExecutionToken {
     public void setCtape(ConsolidatedTape ctape) {
         this.ctape = ctape;
     }
+
+    public boolean isInExec() {
+        return isInExec;
+    }
+
+    public void setInExec(boolean inExec) {
+        isInExec = inExec;
+    }
+
 }

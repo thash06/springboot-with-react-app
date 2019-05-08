@@ -61,7 +61,8 @@ class TradeComponent extends Component {
                                         <label>OrderType</label>
                                         <Field className="custom-select" component="select" name="orderType" required>
                                             <option value="">SELECT ONE</option>
-                                            <option value="5-10%">5-10% POV</option>
+                                            <option value="5-15%">5-15% POV</option>
+                                            <option value="10-30%">10-30% POV</option>
                                         </Field>
                                     </fieldset>
                                     <button className="btn btn-success" type="submit">Save</button>

@@ -7,6 +7,7 @@ import com.sapient.purestream.model.ConsolidatedTape;
 import com.sapient.purestream.model.Execution;
 import com.sapient.purestream.model.ExecutionToken;
 import com.sapient.purestream.model.Trade;
+import com.sapient.purestream.respository.ConsolidatedTapeRepository;
 import com.sapient.purestream.respository.ExecutionRepository;
 import com.sapient.purestream.respository.TradeRepository;
 import io.reactivex.Observable;
@@ -16,11 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 
 public class ExecutionWorker implements Runnable {
     private static final Logger LOG = LoggerFactory
@@ -28,55 +27,40 @@ public class ExecutionWorker implements Runnable {
 
     private final TradeRepository tradeRepository;
     private final ExecutionRepository executionRepository;
+    private final ConsolidatedTapeRepository consolidatedTapeRepository;
     private final ConsolidatedTapeService consolidatedTapeService;
     private final SequeneGeneratorService sequeneGeneratorService;
-    private final Map<String, List<ExecutionToken>> execMap;
+    private final Map<String, Queue<ExecutionToken>> execMap;
 
     private Disposable disposable = null;
     private int period = 0;
-    private int counter = 0;
     CountDownLatch clatch = new CountDownLatch(1);
 
-    public ExecutionWorker(Map<String, List<ExecutionToken>> execMap
+    public ExecutionWorker(Map<String, Queue<ExecutionToken>> execMap
             , TradeRepository tradeRepository
             , ExecutionRepository executionRepository
+            , ConsolidatedTapeRepository consolidatedTapeRepository
             , ConsolidatedTapeService consolidatedTapeService
             , SequeneGeneratorService sequeneGeneratorService) {
         this.execMap = execMap;
         this.tradeRepository = tradeRepository;
         this.executionRepository = executionRepository;
+        this.consolidatedTapeRepository = consolidatedTapeRepository;
         this.consolidatedTapeService = consolidatedTapeService;
         this.sequeneGeneratorService = sequeneGeneratorService;
     }
 
     class EWTimerTask extends TimerTask {
         public void run() {
+
+            System.out.println("Exec Timer: " + execMap.size());
+
             if (execMap.isEmpty()) {
                 disposable.dispose();
-                cleanMap();
                 clatch.countDown();
-            } else {
-                counter++;
-                if (counter == 10) {
-                    disposable.dispose();
-                    cleanMap();
-                    clatch.countDown();
-                }
             }
 
         }
-    }
-
-    private void cleanMap() {
-        execMap.keySet().stream().forEach(k -> execMap.get(k).stream()
-                .forEach(e -> {
-                    Trade bt = e.getBuyTrade();
-                    Trade st = e.getSellTrade();
-                    bt.setOrderStatus(OrderStatus.RESTING);
-                    st.setOrderStatus(OrderStatus.RESTING);
-                    tradeRepository.save(bt);
-                    tradeRepository.save(st);
-                }));
     }
 
     public void run() {
@@ -91,21 +75,37 @@ public class ExecutionWorker implements Runnable {
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new EWTimerTask(), 0, period * 5000);
 
-        ctapestream.map(ct -> {
-            List<ExecutionToken> tokens = execMap.get(ct.getTicker());
-            if (tokens != null) {
-                ExecutionToken et = tokens.remove(0);
-                if (tokens.isEmpty())
-                    execMap.remove(ct.getTicker());
+    /*    Comparator<ExecutionToken> et_comparator = (ExecutionToken o1, ExecutionToken o2) -> {
+            int quantity1 = o1.getBuyTrade().getQuantity() >= o1.getSellTrade().getQuantity()
+                    ? o1.getBuyTrade().getQuantity() : o1.getSellTrade().getQuantity();
+            int quantity2 = o2.getBuyTrade().getQuantity() >= o2.getSellTrade().getQuantity()
+                    ? o2.getBuyTrade().getQuantity() : o2.getSellTrade().getQuantity();
 
-                et.setCtape(ct);
-                Observable.just(et)
-                        //.observeOn(Schedulers.io())
-                        .map(t -> {
-                            processExecution(et);
-                            return t;
-                        })
-                        .subscribe();
+            if (quantity1 == quantity2)
+                return 0;
+            else if (quantity1 < quantity2)
+                return 1;
+            else
+                return -1;
+        };
+*/
+        ctapestream.map(ct -> {
+            Queue<ExecutionToken> tokens = execMap.get(ct.getTicker());
+            if (tokens != null && !tokens.isEmpty()) {
+                List<ExecutionToken> elist = tokens.stream().filter(tk -> tk.isInExec() == false).collect(Collectors.toList());
+                elist.stream().forEach(tk -> {
+                    tk.setInExec(true);
+                    tk.setCtape(ct);
+
+                    Observable.just(tk)
+                            //.observeOn(Schedulers.io())
+                            .map(tkn -> {
+                                processExecution(tkn);
+                                return tkn;
+                            }).subscribe();
+                });
+            } else {
+                execMap.remove(ct.getTicker());
             }
 
             return ct;
@@ -124,8 +124,13 @@ public class ExecutionWorker implements Runnable {
 
     private boolean processExecution(ExecutionToken execToken) {
 
+        System.out.println("Exec trade: ");
+
         boolean result = true;
-        int estQuantity = (int) Math.round(execToken.getCtape().getQuantity() * 0.15);
+        double percent = 0.15;     // default for strategy "5-15% POV"
+        if (execToken.getBuyTrade().getOrderType().equals("10-30%"))   // for strategy "10-30% POV"
+            percent = 0.3;
+        int estQuantity = (int) Math.round(execToken.getCtape().getQuantity() * percent);
 
         int execQuantity = estQuantity;
         double price = execToken.getCtape().getPrice();
@@ -133,11 +138,7 @@ public class ExecutionWorker implements Runnable {
         Trade buyTrade = execToken.getBuyTrade();
         Trade sellTrade = execToken.getSellTrade();
         int buyTradeQuantity = buyTrade.getRemainingQuantity();
-        if (buyTradeQuantity == -1)
-            buyTradeQuantity = buyTrade.getQuantity();
         int sellTradeQuantity = sellTrade.getRemainingQuantity();
-        if (sellTradeQuantity == -1)
-            sellTradeQuantity = sellTrade.getQuantity();
 
         if (buyTradeQuantity < estQuantity || sellTradeQuantity < estQuantity) {
             execQuantity = buyTradeQuantity < sellTradeQuantity ? buyTradeQuantity : sellTradeQuantity;
@@ -153,36 +154,66 @@ public class ExecutionWorker implements Runnable {
         exec.setExecStatus(ExecutionStatus.SUCCESS);
         exec.setCreated(LocalDateTime.now());
 
+        ConsolidatedTape ctape = execToken.getCtape();
+        long ctapeId = sequeneGeneratorService.generateSequence("ConsolidatedTapes");
+        ctape.setId(ctapeId);
+
+        exec.setConsolidTapeId(ctapeId);
+
         if (buyTrade.getSide() != Side.BUY || sellTrade.getSide() != Side.SELL
                 || !buyTrade.getTicker().equals(sellTrade.getTicker())
                 || !buyTrade.getOrderType().equals(sellTrade.getOrderType())) {
 
-            exec.setExecStatus(ExecutionStatus.ERROR);
+            exec.setExecStatus(ExecutionStatus.CANCEL);
+            exec.setCancelReason("buy and sell trades do not match (" + buyTrade.getId() + "," + sellTrade.getId() + ")");
             buyTrade.setOrderStatus(OrderStatus.RESTING);
             sellTrade.setOrderStatus(OrderStatus.RESTING);
 
             result = false;
         }
 
-        if (buyTradeQuantity == execQuantity) {
-            buyTrade.setRemainingQuantity(0);
-            buyTrade.setOrderStatus(OrderStatus.COMPLETE);
-        } else {
-            buyTrade.setRemainingQuantity(buyTradeQuantity - execQuantity);
-            buyTrade.setOrderStatus(OrderStatus.RESTING);
-        }
+        boolean complete = false;
+        if (result) {
+            if (buyTradeQuantity == execQuantity) {
+                buyTrade.setRemainingQuantity(0);
+                buyTrade.setOrderStatus(OrderStatus.COMPLETE);
+                complete = true;
+            }
 
-        if (sellTradeQuantity == execQuantity) {
-            sellTrade.setRemainingQuantity(0);
-            sellTrade.setOrderStatus(OrderStatus.COMPLETE);
-        } else {
-            sellTrade.setRemainingQuantity(sellTradeQuantity - execQuantity);
-            sellTrade.setOrderStatus(OrderStatus.RESTING);
-        }
+            if (sellTradeQuantity == execQuantity) {
+                sellTrade.setRemainingQuantity(0);
+                sellTrade.setOrderStatus(OrderStatus.COMPLETE);
+                complete = true;
+            }
 
+            if (complete && buyTradeQuantity == execQuantity && sellTradeQuantity != execQuantity) {
+                sellTrade.setRemainingQuantity(sellTradeQuantity - execQuantity);
+                sellTrade.setOrderStatus(OrderStatus.RESTING);
+            }
+
+            if (complete && buyTradeQuantity != execQuantity && sellTradeQuantity == execQuantity) {
+                buyTrade.setRemainingQuantity(buyTradeQuantity - execQuantity);
+                buyTrade.setOrderStatus(OrderStatus.RESTING);
+            }
+
+            if (!complete) {
+                buyTrade.setRemainingQuantity(buyTradeQuantity - execQuantity);
+                sellTrade.setRemainingQuantity(sellTradeQuantity - execQuantity);
+            }
+        }
         executionRepository.save(exec);
         tradeRepository.save(buyTrade);
         tradeRepository.save(sellTrade);
+        consolidatedTapeRepository.save(ctape);
+
+        if (!complete) {
+            execToken.setInExec(false);
+        } else {
+            Queue<ExecutionToken> q = execMap.get(execToken.getTicker());
+            // synchronized(q) {
+            q.remove(execToken);
+            // }
+        }
 
         return result;
     }

@@ -14,10 +14,11 @@ public class Trade {
     @Id
     private Long id;
     private Integer quantity;
-    private Integer remainingQuantity = -1;
+    private Integer remainingQuantity;
     private Side side;
     private String ticker;
     private String orderType;
+    //private Double priceLimit;
     private OrderStatus orderStatus;
     private Date orderCreated;
 

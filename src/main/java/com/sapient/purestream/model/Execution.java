@@ -17,8 +17,10 @@ public class Execution {
     private double price;
     private long buyTradeId;
     private long sellTradeId;
+    private long consolidTapeId;
     private ExecutionStatus execStatus;
     private LocalDateTime created;
+    private String cancelReason;
 
     public Execution() {
     }
