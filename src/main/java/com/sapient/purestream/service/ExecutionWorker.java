@@ -206,7 +206,7 @@ public class ExecutionWorker implements Runnable {
         tradeRepository.save(sellTrade);
         consolidatedTapeRepository.save(ctape);
 
-        if (!complete) {
+        if (!complete && result) {
             execToken.setInExec(false);
         } else {
             Queue<ExecutionToken> q = execMap.get(execToken.getTicker());
