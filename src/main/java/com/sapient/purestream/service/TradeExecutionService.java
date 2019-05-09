@@ -81,7 +81,6 @@ public class TradeExecutionService {
         };
 
         // add to execution map
-
         Stream<Trade> bstream = tt.stream().filter(t -> t.getSide() == Side.BUY).sorted(tr_comparator);
         List<Trade> strades = tt.stream().filter(s -> s.getSide() == Side.SELL).sorted(tr_comparator).collect(Collectors.toList());
 

@@ -2,6 +2,7 @@ package com.sapient.purestream;
 
 import com.sapient.purestream.model.ConsolidatedTape;
 import com.sapient.purestream.service.ConsolidatedTapeService;
+import com.sapient.purestream.service.TapeFeedService;
 import io.reactivex.observables.ConnectableObservable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +21,14 @@ public class StartTradeStreamServices implements CommandLineRunner {
             .getLogger(StartTradeStreamServices.class);
 
     private final ConsolidatedTapeService consolidatedTapeService;
+    private final TapeFeedService tapeFeedService;
     private final RestClient restClient;
 
     public StartTradeStreamServices(ConsolidatedTapeService consolidatedTapeService
+            , TapeFeedService tapeFeedService
             , RestClient restClient) {
         this.consolidatedTapeService = consolidatedTapeService;
+        this.tapeFeedService = tapeFeedService;
         this.restClient = restClient;
     }
 
@@ -34,6 +38,9 @@ public class StartTradeStreamServices implements CommandLineRunner {
         ConnectableObservable<ConsolidatedTape> ctape = consolidatedTapeService.getConsolidatedTape();
         ctape.take(5).subscribe(t -> LOG.info(t.toString()));
         ctape.connect();
+
+        Thread tapeFeedThread = new Thread(tapeFeedService);
+        tapeFeedThread.start();
 
         class ESTimerTask extends TimerTask {
             public void run() {
@@ -49,6 +56,7 @@ public class StartTradeStreamServices implements CommandLineRunner {
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             clatch.countDown();
+            tapeFeedService.getLatch().countDown();
             timer.cancel();
         }));
 

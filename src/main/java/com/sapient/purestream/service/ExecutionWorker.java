@@ -3,6 +3,7 @@ package com.sapient.purestream.service;
 import com.sapient.purestream.constants.ExecutionStatus;
 import com.sapient.purestream.constants.OrderStatus;
 import com.sapient.purestream.constants.Side;
+import com.sapient.purestream.constants.TradeStrategy;
 import com.sapient.purestream.model.ConsolidatedTape;
 import com.sapient.purestream.model.Execution;
 import com.sapient.purestream.model.ExecutionToken;
@@ -53,8 +54,6 @@ public class ExecutionWorker implements Runnable {
     class EWTimerTask extends TimerTask {
         public void run() {
 
-            System.out.println("Exec Timer: " + execMap.size());
-
             if (execMap.isEmpty()) {
                 disposable.dispose();
                 clatch.countDown();
@@ -75,20 +74,6 @@ public class ExecutionWorker implements Runnable {
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new EWTimerTask(), 0, period * 5000);
 
-    /*    Comparator<ExecutionToken> et_comparator = (ExecutionToken o1, ExecutionToken o2) -> {
-            int quantity1 = o1.getBuyTrade().getQuantity() >= o1.getSellTrade().getQuantity()
-                    ? o1.getBuyTrade().getQuantity() : o1.getSellTrade().getQuantity();
-            int quantity2 = o2.getBuyTrade().getQuantity() >= o2.getSellTrade().getQuantity()
-                    ? o2.getBuyTrade().getQuantity() : o2.getSellTrade().getQuantity();
-
-            if (quantity1 == quantity2)
-                return 0;
-            else if (quantity1 < quantity2)
-                return 1;
-            else
-                return -1;
-        };
-*/
         ctapestream.map(ct -> {
             Queue<ExecutionToken> tokens = execMap.get(ct.getTicker());
             if (tokens != null && !tokens.isEmpty()) {
@@ -98,7 +83,6 @@ public class ExecutionWorker implements Runnable {
                     tk.setCtape(ct);
 
                     Observable.just(tk)
-                            //.observeOn(Schedulers.io())
                             .map(tkn -> {
                                 processExecution(tkn);
                                 return tkn;
@@ -124,12 +108,10 @@ public class ExecutionWorker implements Runnable {
 
     private boolean processExecution(ExecutionToken execToken) {
 
-        System.out.println("Exec trade: ");
-
         boolean result = true;
-        double percent = 0.15;     // default for strategy "5-15% POV"
-        if (execToken.getBuyTrade().getOrderType().equals("10-30%"))   // for strategy "10-30% POV"
-            percent = 0.3;
+        double percent = execToken.getBuyTrade().getOrderType()
+                .equals(TradeStrategy.FIVE_FIFTEEN_PCT_POV.getValue())
+                ? 0.15 : 0.3;    // for strategy "5-15%" or "10-30%" POV strategy
         int estQuantity = (int) Math.round(execToken.getCtape().getQuantity() * percent);
 
         int execQuantity = estQuantity;
@@ -210,9 +192,7 @@ public class ExecutionWorker implements Runnable {
             execToken.setInExec(false);
         } else {
             Queue<ExecutionToken> q = execMap.get(execToken.getTicker());
-            // synchronized(q) {
             q.remove(execToken);
-            // }
         }
 
         return result;
