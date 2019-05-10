@@ -59,7 +59,7 @@ public class TradeExecutionService {
         ewThread.start();
     }
 
-    private synchronized Map<String, Queue<ExecutionToken>> retrieveAddToExecutionQ() {
+    public synchronized Map<String, Queue<ExecutionToken>> retrieveAddToExecutionQ() {
 
         Map<String, Queue<ExecutionToken>> execM2 = new HashMap<>();
 

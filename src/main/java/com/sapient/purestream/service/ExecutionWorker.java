@@ -106,7 +106,7 @@ public class ExecutionWorker implements Runnable {
         LOG.info("Trade exec worker exiting ...");
     }
 
-    private boolean processExecution(ExecutionToken execToken) {
+    public boolean processExecution(ExecutionToken execToken) {
 
         boolean result = true;
         double percent = execToken.getBuyTrade().getOrderType()

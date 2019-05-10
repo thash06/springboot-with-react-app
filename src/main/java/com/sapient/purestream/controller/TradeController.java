@@ -7,8 +7,6 @@ import com.sapient.purestream.model.Trade;
 import com.sapient.purestream.service.SequeneGeneratorService;
 import com.sapient.purestream.service.TradeService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +19,6 @@ import java.util.stream.Collectors;
 @RequestMapping("/api")
 @Slf4j
 public class TradeController {
-    private static final Logger LOG = LoggerFactory
-            .getLogger(TradeController.class);
 
     private final TradeService tradeService;
     private final SequeneGeneratorService sequeneGeneratorService;
@@ -106,7 +102,7 @@ public class TradeController {
             });
         });
 
-        LOG.info("TradeController: complete");
+        log.info("TradeController: complete");
 
         return matched;
     }
