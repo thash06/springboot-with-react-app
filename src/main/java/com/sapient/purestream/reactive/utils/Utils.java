@@ -1,4 +1,4 @@
-package com.sapient.purestream.utils;
+package com.sapient.purestream.reactive.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 public class Utils {
