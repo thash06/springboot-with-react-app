@@ -1,6 +1,6 @@
-package com.sapient.purestream.model;
+package com.sapient.purestream.reactive.model;
 
-import com.sapient.purestream.constants.ExecutionStatus;
+import com.sapient.purestream.reactive.constants.ExecutionStatus;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

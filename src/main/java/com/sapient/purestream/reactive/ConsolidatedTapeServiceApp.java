@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * @author tarhashm
  */
+//@SpringBootApplication(scanBasePackages =  {"com.sapient.purestream.reactive"})
 @SpringBootApplication
 public class ConsolidatedTapeServiceApp {
     public static void main(String[] args) {

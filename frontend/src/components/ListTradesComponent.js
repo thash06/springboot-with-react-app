@@ -41,7 +41,7 @@ class ListTradesComponent extends Component {
             )
     }
     processOrder() {
-        TradeDataService.processOrder()
+        TradeDataService.processOrder(this)
             .then((response) => {
                     console.log("Array Length:" + response.data.length)
                     this.setState({message: `updated`})

@@ -1,4 +1,4 @@
-package com.sapient.purestream.model;
+package com.sapient.purestream.reactive.model;
 
 public class ExecutionToken {
     private String ticker;

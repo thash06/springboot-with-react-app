@@ -1,6 +1,6 @@
 package com.sapient.purestream.reactive.service;
 
-import com.sapient.purestream.model.DatabaseSequence;
+import com.sapient.purestream.reactive.model.DatabaseSequence;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Update;

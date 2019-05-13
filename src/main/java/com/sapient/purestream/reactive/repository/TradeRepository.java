@@ -1,6 +1,6 @@
 package com.sapient.purestream.reactive.repository;
 
-import com.sapient.purestream.model.Trade;
+import com.sapient.purestream.reactive.model.Trade;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;

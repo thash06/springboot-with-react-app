@@ -1,6 +1,6 @@
 package com.sapient.purestream.reactive.service;
 
-import com.sapient.purestream.reactive.model.Quote;
+import com.sapient.purestream.reactive.entity.Quote;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 

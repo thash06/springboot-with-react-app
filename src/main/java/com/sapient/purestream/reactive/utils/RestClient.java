@@ -1,6 +1,6 @@
-package com.sapient.purestream;
+package com.sapient.purestream.reactive.utils;
 
-import com.sapient.purestream.respository.TradeRepository;
+import com.sapient.purestream.reactive.repository.TradeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

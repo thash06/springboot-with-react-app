@@ -1,4 +1,4 @@
-package com.sapient.purestream.model;
+package com.sapient.purestream.reactive.model;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

@@ -1,6 +1,6 @@
 package com.sapient.purestream.reactive.repository;
 
-import com.sapient.purestream.model.Execution;
+import com.sapient.purestream.reactive.model.Execution;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 

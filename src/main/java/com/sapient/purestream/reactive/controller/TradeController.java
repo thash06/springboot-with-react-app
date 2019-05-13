@@ -1,8 +1,8 @@
 package com.sapient.purestream.reactive.controller;
 
-import com.sapient.purestream.constants.OrderStatus;
-import com.sapient.purestream.exceptions.ResourceNotFoundException;
-import com.sapient.purestream.model.Trade;
+import com.sapient.purestream.reactive.constants.OrderStatus;
+import com.sapient.purestream.reactive.exceptions.ResourceNotFoundException;
+import com.sapient.purestream.reactive.model.Trade;
 import com.sapient.purestream.reactive.service.MongoSequenceGeneratorService;
 import com.sapient.purestream.reactive.service.TradeService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotNull;
@@ -40,7 +41,7 @@ public class TradeController {
     }
 
     @PostMapping("/trade")
-    public Mono<ResponseEntity<Void>> createTrade(@RequestBody Trade trade) {
+    public Mono<ResponseEntity<Trade>> createTrade(@RequestBody Trade trade) {
         LOG.info(" createTrade {} ...", trade);
         return Mono.just(mongoSequenceGeneratorService.generateSequence("Trades"))
                 .flatMap(seqNo -> {
@@ -48,10 +49,11 @@ public class TradeController {
                             trade.setOrderCreated(new Date());
                             trade.setOrderStatus(OrderStatus.NEW);
 
-                            return tradeService.createTrade(trade)
-                                    .then(Mono.just(new ResponseEntity<Void>(HttpStatus.OK)));
+                    return tradeService.createTrade(trade);
                         }
-                ).defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+                )
+                .map(newTrade -> new ResponseEntity<>(newTrade, HttpStatus.OK))
+                .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/deleteById/{id}")
@@ -63,5 +65,24 @@ public class TradeController {
                                 .then(Mono.just(new ResponseEntity<Void>(HttpStatus.OK)))
                 )
                 .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @PostMapping("/processOrder")
+    public Mono<ResponseEntity> getStreamingOrders(@RequestBody Trade trade) {
+        LOG.info(" getStreamingOrders {} ...", trade);
+        Flux<Trade> newTrades = this.tradeService.findByOrderStatus(OrderStatus.NEW.toString());
+        Flux<Trade> restingTrades = this.tradeService.findByOrderStatus(OrderStatus.RESTING.toString());
+        Flux<Trade> newAndRestringTrades = newTrades.concatWith(restingTrades);
+        //return new ResponseEntity<>(getStreamingMatch(trade, newAndRestringTrades), HttpStatus.OK);
+        return Mono.just(new ResponseEntity(getStreamingMatch(trade, newAndRestringTrades), HttpStatus.OK))
+                .defaultIfEmpty(new ResponseEntity<Flux>(Flux.empty(), HttpStatus.NOT_FOUND));
+    }
+
+    private Flux<Trade> getStreamingMatch(Trade newTrade, Flux<Trade> newAndRestringTrades) {
+        Flux<Trade> matchedTrades = newAndRestringTrades
+                .filter(trade -> trade.getTicker().equals(newTrade.getTicker()) && trade.getOrderType().equals(newTrade.getOrderType()));
+        LOG.info(" Matched Trades for {} are {}", newTrade, matchedTrades);
+
+        return matchedTrades;
     }
 }

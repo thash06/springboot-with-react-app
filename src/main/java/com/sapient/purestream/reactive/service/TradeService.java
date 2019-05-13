@@ -1,6 +1,6 @@
 package com.sapient.purestream.reactive.service;
 
-import com.sapient.purestream.model.Trade;
+import com.sapient.purestream.reactive.model.Trade;
 import com.sapient.purestream.reactive.repository.TradeRepository;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;

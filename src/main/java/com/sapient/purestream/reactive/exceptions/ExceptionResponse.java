@@ -1,7 +1,8 @@
-package com.sapient.purestream.exceptions;
+package com.sapient.purestream.reactive.exceptions;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+
 import java.util.Date;
 
 @Data

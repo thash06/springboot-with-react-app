@@ -1,4 +1,4 @@
-package com.sapient.purestream.model;
+package com.sapient.purestream.reactive.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;

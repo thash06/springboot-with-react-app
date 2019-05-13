@@ -1,4 +1,4 @@
-package com.sapient.purestream.exceptions;
+package com.sapient.purestream.reactive.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

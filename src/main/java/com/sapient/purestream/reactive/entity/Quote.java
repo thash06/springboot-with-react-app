@@ -1,4 +1,4 @@
-package com.sapient.purestream.reactive.model;
+package com.sapient.purestream.reactive.entity;
 
 /**
  * @author tarhashm
