@@ -31,10 +31,10 @@ class TradeDataService {
 
     processOrder(trade) {
         return axios.post(`${TRADES_API_URL}/processOrder`, {trade})
-            .then(res => {
-                console.log(res);
-                console.log(res.data);
-            })
+                          .then(res => {
+                              console.log(res);
+                              console.log(res.state.trades);
+                          })
     }
 
     getAPIUrl() {

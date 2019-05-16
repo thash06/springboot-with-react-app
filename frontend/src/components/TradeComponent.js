@@ -25,6 +25,14 @@ class TradeComponent extends Component {
                     window.location.href = "/";
                 },500);
             })
+
+        axios({ method: 'post', url: TradeDataService.getAPIUrl()+"/processOrder", data: trade })
+            .then(() => {
+                setTimeout(function () {
+                    window.location.href = "/";
+                },500);
+            })
+
     }
 
     render() {
