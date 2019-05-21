@@ -26,12 +26,12 @@ class TradeComponent extends Component {
                 },500);
             })
 
-        axios({ method: 'post', url: TradeDataService.getAPIUrl()+"/processOrder", data: trade })
-            .then(() => {
-                setTimeout(function () {
-                    window.location.href = "/";
-                },500);
-            })
+//        axios({ method: 'post', url: TradeDataService.getAPIUrl()+"/processOrder", data: trade })
+//            .then(() => {
+//                setTimeout(function () {
+//                    window.location.href = "/";
+//                },500);
+//            })
 
     }
 

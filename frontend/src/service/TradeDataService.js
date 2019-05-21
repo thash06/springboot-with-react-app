@@ -30,6 +30,7 @@ class TradeDataService {
     }
 
     processOrder(trade) {
+        console.log("The trade is" + trade);
         return axios.post(`${TRADES_API_URL}/processOrder`, {trade})
                           .then(res => {
                               console.log(res);

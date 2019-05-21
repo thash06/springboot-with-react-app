@@ -45,6 +45,7 @@ public class TradeController {
         LOG.info(" createTrade {} ...", trade);
         return Mono.just(mongoSequenceGeneratorService.generateSequence("Trades"))
                 .flatMap(seqNo -> {
+                    LOG.info("The seqNo is {}", seqNo);
                             trade.setId(seqNo);
                             trade.setOrderCreated(new Date());
                             trade.setOrderStatus(OrderStatus.NEW);
@@ -52,7 +53,10 @@ public class TradeController {
                     return tradeService.createTrade(trade);
                         }
                 )
-                .map(newTrade -> new ResponseEntity<>(newTrade, HttpStatus.OK))
+                .map(newTrade -> {
+                    this.getStreamingOrders(newTrade);
+                    LOG.info("The new trade values are {}", newTrade);
+                    return new ResponseEntity<>(newTrade, HttpStatus.OK);})
                 .defaultIfEmpty(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
@@ -74,15 +78,21 @@ public class TradeController {
         Flux<Trade> restingTrades = this.tradeService.findByOrderStatus(OrderStatus.RESTING.toString());
         Flux<Trade> newAndRestringTrades = newTrades.concatWith(restingTrades);
         //return new ResponseEntity<>(getStreamingMatch(trade, newAndRestringTrades), HttpStatus.OK);
-        return Mono.just(new ResponseEntity(getStreamingMatch(trade, newAndRestringTrades), HttpStatus.OK))
+        return Mono.just(new ResponseEntity(
+                tradeService.getStreamingMatch(trade, newAndRestringTrades), HttpStatus.OK))
                 .defaultIfEmpty(new ResponseEntity<Flux>(Flux.empty(), HttpStatus.NOT_FOUND));
     }
 
-    private Flux<Trade> getStreamingMatch(Trade newTrade, Flux<Trade> newAndRestringTrades) {
-        Flux<Trade> matchedTrades = newAndRestringTrades
-                .filter(trade -> trade.getTicker().equals(newTrade.getTicker()) && trade.getOrderType().equals(newTrade.getOrderType()));
-        LOG.info(" Matched Trades for {} are {}", newTrade, matchedTrades);
-
-        return matchedTrades;
-    }
+//    /*
+//    Main method - will take trades and try to match
+//     */
+//    private Flux<Trade> getStreamingMatch(Trade newTrade, Flux<Trade> newAndRestringTrades) {
+//        Flux<Trade> matchedTrades = newAndRestringTrades
+//                .filter(trade -> trade.getTicker().equals(newTrade.getTicker())
+//                        && trade.getOrderType().equals(newTrade.getOrderType())
+//                        && !trade.getSide().equals(newTrade.getSide()));
+//        LOG.info(" Matched Trades for {} are {}", newTrade, matchedTrades.blockFirst());
+//
+//        return matchedTrades;
+//    }
 }
