@@ -10,8 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.time.Duration;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -29,6 +33,9 @@ public class TradeService {
 
     public Mono<Trade> createTrade(Trade trade) {
         return this.tradeRepository.save(trade);
+    }
+    public Flux<Trade> findByTicker(String ticker) {
+        return this.tradeRepository.findByTicker(ticker);
     }
 
     public Flux<Trade> displayTrades() {
@@ -55,40 +62,56 @@ public class TradeService {
         Main method - will take trades and try to match
     */
     public Flux<Trade> getStreamingMatch(Trade newTrade, Flux<Trade> newAndRestringTrades) {
+
+        Flux<Quote> quoteStream = consolidatedTapeService.fetchQuoteStream();
         Flux<Trade> matchedTrades = newAndRestringTrades
                 .filter(trade -> trade.getTicker().equals(newTrade.getTicker())
                         && trade.getOrderType().equals(newTrade.getOrderType())
                         && !trade.getSide().equals(newTrade.getSide()));
+
 //                .map(t -> {
 //                    t.setOrderStatus(OrderStatus.STREAMING);
 //                    return t;
 //                });
         LOG.info(" Matched Trades for {} are {}", newTrade, matchedTrades);
+      matchedTrades.takeUntil(trade -> {
+            if (newTrade.getRemainingQuantity()>0 && trade.getRemainingQuantity() > newTrade.getQuantity()) {
+                quoteStream.takeUntil(q->newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, newTrade)).subscribe();
+                quoteStream.takeUntil(q->newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, trade)).subscribe();
+                return trade.getRemainingQuantity()==(trade.getRemainingQuantity()-newTrade.getQuantity()) && newTrade.getRemainingQuantity()==0;
+            }else if (trade.getRemainingQuantity()>0 && trade.getRemainingQuantity() < newTrade.getQuantity()){
+                quoteStream.takeUntil(q->trade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, newTrade)).subscribe();
+                quoteStream.takeUntil(q->trade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, trade)).subscribe();
+                return newTrade.getRemainingQuantity()==(newTrade.getQuantity()-trade.getRemainingQuantity()) && trade.getRemainingQuantity()==0;
+            }else if (trade.getRemainingQuantity()>0 && newTrade.getRemainingQuantity()>0 && trade.getRemainingQuantity() == newTrade.getQuantity()) {
+                quoteStream.takeUntil(q-> newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, newTrade)).subscribe();
+                quoteStream.takeUntil(q-> trade.getRemainingQuantity()==0 ).doOnNext(qt -> this.executeTrade(qt, trade)).subscribe();
+                return trade.getRemainingQuantity()==0 && newTrade.getRemainingQuantity()==0;
+            }
 
-        Flux<Quote> quoteStream = consolidatedTapeService.fetchQuoteStream();
-        quoteStream.takeUntil(q -> newTrade.getRemainingQuantity() == 0)
-                .log()
-                .subscribe(qt -> this.executeTrade(qt, newTrade));
-
-        return matchedTrades;
+//           i==matchedTrades.toStream().collect(Collectors.toList()).size();
+return true;
+        }).subscribe();
+        return   matchedTrades;
     }
 
-    private void executeTrade(Quote quote, Trade trade){
-        if(quote.getTicker().equals(trade.getTicker())){
+    private void executeTrade(Quote quote, Trade trade) {
+        if (quote.getTicker().equals(trade.getTicker())) {
             //take 10% until its less than 5%
-            int tradeQuantityRemaining = trade.getRemainingQuantity();
-            int removeQuantity = (int) trade.getQuantity()/10;
-            if(tradeQuantityRemaining > removeQuantity)
-            {
-                tradeQuantityRemaining = tradeQuantityRemaining - removeQuantity;
-                trade.setRemainingQuantity(tradeQuantityRemaining);
-                if(trade.getOrderStatus() != OrderStatus.EXECUTING)
-                    trade.setOrderStatus(OrderStatus.EXECUTING);
-            } else {
-                trade.setRemainingQuantity(0);
-                trade.setOrderStatus(OrderStatus.COMPLETE);
-            }
-            this.tradeRepository.save(trade);
+            this.tradeRepository.save(trade).doOnNext(trade1 -> {
+                    trade1.setRemainingQuantity(trade1.getRemainingQuantity()-10);
+                    trade1.setPercentage((1-((double)trade.getRemainingQuantity()/(double)trade.getQuantity()))*100);
+                    if (trade1.getOrderStatus() != OrderStatus.EXECUTING){
+                        trade1.setOrderStatus(OrderStatus.EXECUTING);
+                    }
+                    if(trade1.getRemainingQuantity()==0 ){
+                        trade1.setOrderStatus(OrderStatus.COMPLETE);
+                        tradeRepository.delete(trade1);
+                    }
+                }).subscribe();
+//            if((remaining.getOrderStatus()==OrderStatus.EXECUTING && trade.getOrderStatus()==OrderStatus.COMPLETE)||(remaining.getOrderStatus()==OrderStatus.COMPLETE && trade.getOrderStatus()==OrderStatus.EXECUTING)){
+//                dis.dispose();
+//            }
         }
     }
 

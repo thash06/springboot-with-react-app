@@ -20,8 +20,10 @@ public class Trade {
     private String orderType;
     private OrderStatus orderStatus;
     private Date orderCreated;
+    private Double percentage;
 
-    public Trade() {}
+    public Trade() {
+    }
 
     @Override
     public boolean equals(Object o) {

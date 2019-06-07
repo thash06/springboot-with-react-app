@@ -40,6 +40,23 @@ public class TradeController {
         return new ResponseEntity<>(this.tradeService.displayTrades(), HttpStatus.OK);
     }
 
+    @GetMapping("/getTrades/{ticker}")
+    public ResponseEntity<Object> getTrades(@PathVariable @NotNull String ticker) {
+        LOG.info(" displayAll orders ...");
+
+        return new ResponseEntity<>(this.tradeService.findByTicker(ticker), HttpStatus.OK);
+    }
+
+    @GetMapping("/getPercentage/{id}")
+    public ResponseEntity<Object> getOne(@PathVariable @NotNull long id) {
+        LOG.info(" displayAll orders ...");
+        Mono<Double> percentage = this.tradeService.findById(id).flatMap(t->{
+            return Mono.just(new Double((1-((double)t.getRemainingQuantity()/(double)t.getQuantity()))*100));
+        });
+        return new ResponseEntity<>(percentage, HttpStatus.OK);
+    }
+
+
     @PostMapping("/trade")
     public Mono<ResponseEntity<Trade>> createTrade(@RequestBody Trade trade) {
         LOG.info(" createTrade {} ...", trade);
@@ -49,7 +66,7 @@ public class TradeController {
                             trade.setId(seqNo);
                             trade.setOrderCreated(new Date());
                             trade.setOrderStatus(OrderStatus.NEW);
-
+                            trade.setPercentage((1-((double)trade.getRemainingQuantity()/(double)trade.getQuantity()))*100);
                     return tradeService.createTrade(trade);
                         }
                 )
@@ -83,9 +100,10 @@ public class TradeController {
                 .defaultIfEmpty(new ResponseEntity<Flux>(Flux.empty(), HttpStatus.NOT_FOUND));
     }
 
-//    /*
-//    Main method - will take trades and try to match
-//     */
+
+//    /*match
+////     */
+//    Main method - will take trades and try to
 //    private Flux<Trade> getStreamingMatch(Trade newTrade, Flux<Trade> newAndRestringTrades) {
 //        Flux<Trade> matchedTrades = newAndRestringTrades
 //                .filter(trade -> trade.getTicker().equals(newTrade.getTicker())
