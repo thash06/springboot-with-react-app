@@ -47,16 +47,6 @@ public class TradeController {
         return new ResponseEntity<>(this.tradeService.findByTicker(ticker), HttpStatus.OK);
     }
 
-    @GetMapping("/getPercentage/{id}")
-    public ResponseEntity<Object> getOne(@PathVariable @NotNull long id) {
-        LOG.info(" displayAll orders ...");
-        Mono<Double> percentage = this.tradeService.findById(id).flatMap(t->{
-            return Mono.just(new Double((1-((double)t.getRemainingQuantity()/(double)t.getQuantity()))*100));
-        });
-        return new ResponseEntity<>(percentage, HttpStatus.OK);
-    }
-
-
     @PostMapping("/trade")
     public Mono<ResponseEntity<Trade>> createTrade(@RequestBody Trade trade) {
         LOG.info(" createTrade {} ...", trade);
