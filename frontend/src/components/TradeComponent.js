@@ -10,6 +10,10 @@ class TradeComponent extends Component {
     }
 
     onSubmit(values) {
+        if(values.orderType === "Invalid"){
+            alert("That order type has not been implemented yet.");
+            return;
+        }
         let trade = {
             quantity: values.quantity,
             remainingQuantity: values.quantity,
@@ -70,6 +74,11 @@ class TradeComponent extends Component {
                                         <Field className="custom-select" component="select" name="orderType" required>
                                             <option value="">SELECT ONE</option>
                                             <option value="5-10%">5-10% POV</option>
+                                            <option value="Invalid">10-20% POV</option>
+                                            <option value="Invalid">10-30% POV</option>
+                                            <option value="Invalid">Liquidity Seeking</option>
+                                            <option value="Invalid">Mach 2</option>
+                                            <option value="Invalid">Mach 4</option>
                                         </Field>
                                     </fieldset>
                                     <button className="btn btn-success" type="submit">Save</button>
