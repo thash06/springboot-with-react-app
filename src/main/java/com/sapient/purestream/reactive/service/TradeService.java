@@ -32,6 +32,7 @@ public class TradeService {
     }
 
     public Mono<Trade> createTrade(Trade trade) {
+        trade.setPercentage((1-((double)trade.getRemainingQuantity()/(double)trade.getQuantity()))*100);
         return this.tradeRepository.save(trade);
     }
     public Flux<Trade> findByTicker(String ticker) {
@@ -74,6 +75,7 @@ public class TradeService {
 //                    return t;
 //                });
         LOG.info(" Matched Trades for {} are {}", newTrade, matchedTrades);
+//        quoteStream.takeUntil(q->newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, newTrade)).subscribe();
       matchedTrades.takeUntil(trade -> {
             if (newTrade.getRemainingQuantity()>0 && trade.getRemainingQuantity() > newTrade.getQuantity()) {
                 quoteStream.takeUntil(q->newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, newTrade)).subscribe();
@@ -88,8 +90,6 @@ public class TradeService {
                 quoteStream.takeUntil(q-> trade.getRemainingQuantity()==0 ).doOnNext(qt -> this.executeTrade(qt, trade)).subscribe();
                 return trade.getRemainingQuantity()==0 && newTrade.getRemainingQuantity()==0;
             }
-
-//           i==matchedTrades.toStream().collect(Collectors.toList()).size();
 return true;
         }).subscribe();
         return   matchedTrades;
@@ -97,9 +97,8 @@ return true;
 
     private void executeTrade(Quote quote, Trade trade) {
         if (quote.getTicker().equals(trade.getTicker())) {
-            //take 10% until its less than 5%
             this.tradeRepository.save(trade).doOnNext(trade1 -> {
-                    trade1.setRemainingQuantity(trade1.getRemainingQuantity()-10);
+                    trade1.setRemainingQuantity(trade1.getRemainingQuantity()-1);
                     trade1.setPercentage((1-((double)trade.getRemainingQuantity()/(double)trade.getQuantity()))*100);
                     if (trade1.getOrderStatus() != OrderStatus.EXECUTING){
                         trade1.setOrderStatus(OrderStatus.EXECUTING);
