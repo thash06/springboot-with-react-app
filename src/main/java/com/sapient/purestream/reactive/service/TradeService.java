@@ -69,6 +69,7 @@ public class TradeService {
                 .filter(trade -> trade.getTicker().equals(newTrade.getTicker())
                         && trade.getOrderType().equals(newTrade.getOrderType())
                         && !trade.getSide().equals(newTrade.getSide()));
+//                        && (trade.getOrderStatus() != OrderStatus.COMPLETE));
 
 //                .map(t -> {
 //                    t.setOrderStatus(OrderStatus.STREAMING);
@@ -78,40 +79,89 @@ public class TradeService {
 //        quoteStream.takeUntil(q->newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, newTrade)).subscribe();
       matchedTrades.takeUntil(trade -> {
             if (newTrade.getRemainingQuantity()>0 && trade.getRemainingQuantity() > newTrade.getQuantity()) {
-                quoteStream.takeUntil(q->newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, newTrade)).subscribe();
-                quoteStream.takeUntil(q->newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, trade)).subscribe();
+                quoteStream.takeUntil(q->newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, trade, newTrade)).subscribe();
                 return trade.getRemainingQuantity()==(trade.getRemainingQuantity()-newTrade.getQuantity()) && newTrade.getRemainingQuantity()==0;
             }else if (trade.getRemainingQuantity()>0 && trade.getRemainingQuantity() < newTrade.getQuantity()){
-                quoteStream.takeUntil(q->trade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, newTrade)).subscribe();
-                quoteStream.takeUntil(q->trade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, trade)).subscribe();
+                quoteStream.takeUntil(q->trade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, trade, newTrade)).subscribe();
                 return newTrade.getRemainingQuantity()==(newTrade.getQuantity()-trade.getRemainingQuantity()) && trade.getRemainingQuantity()==0;
             }else if (trade.getRemainingQuantity()>0 && newTrade.getRemainingQuantity()>0 && trade.getRemainingQuantity() == newTrade.getQuantity()) {
-                quoteStream.takeUntil(q-> newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, newTrade)).subscribe();
-                quoteStream.takeUntil(q-> trade.getRemainingQuantity()==0 ).doOnNext(qt -> this.executeTrade(qt, trade)).subscribe();
+                quoteStream.takeUntil(q-> newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, trade, newTrade)).subscribe();
                 return trade.getRemainingQuantity()==0 && newTrade.getRemainingQuantity()==0;
             }
-return true;
+             return true;
         }).subscribe();
         return   matchedTrades;
     }
 
-    private void executeTrade(Quote quote, Trade trade) {
+    private void executeTrade(Quote quote, Trade trade, Trade newTrade) {
+        int subtractedQuantity = getSubtractedQuantity(newTrade);
+        if(trade.getRemainingQuantity() == 0){
+            trade.setOrderStatus(OrderStatus.COMPLETE);
+            if(newTrade.getRemainingQuantity() == 0){
+                newTrade.setOrderStatus(OrderStatus.COMPLETE);
+                return;
+            }else{
+                newTrade.setOrderStatus(OrderStatus.RESTING);
+                return;
+            }
+        }else{
+            if(newTrade.getRemainingQuantity() == 0) {
+                newTrade.setOrderStatus(OrderStatus.COMPLETE);
+                trade.setOrderStatus(OrderStatus.RESTING);
+                return;
+            }
+        }
+
         if (quote.getTicker().equals(trade.getTicker())) {
-            this.tradeRepository.save(trade).doOnNext(trade1 -> {
-                    trade1.setRemainingQuantity(trade1.getRemainingQuantity()-1);
-                    trade1.setPercentage((1-((double)trade.getRemainingQuantity()/(double)trade.getQuantity()))*100);
-                    if (trade1.getOrderStatus() != OrderStatus.EXECUTING){
-                        trade1.setOrderStatus(OrderStatus.EXECUTING);
-                    }
-                    if(trade1.getRemainingQuantity()==0 ){
-                        trade1.setOrderStatus(OrderStatus.COMPLETE);
-                        tradeRepository.delete(trade1);
-                    }
-                }).subscribe();
+   //         this.tradeRepository.save(trade).doOnNext(trade1 -> {
+
+                trade.setRemainingQuantity(trade.getRemainingQuantity() - subtractedQuantity);
+                trade.setPercentage((1-((double)trade.getRemainingQuantity()/(double)trade.getQuantity()))*100);
+                newTrade.setRemainingQuantity(newTrade.getRemainingQuantity() - subtractedQuantity);
+                newTrade.setPercentage((1-((double)newTrade.getRemainingQuantity()/(double)newTrade.getQuantity()))*100);
+                if (trade.getOrderStatus() != OrderStatus.EXECUTING){
+                    trade.setOrderStatus(OrderStatus.EXECUTING);
+                }
+                if(trade.getRemainingQuantity()==0 ){
+                    trade.setOrderStatus(OrderStatus.COMPLETE);
+                    tradeRepository.delete(trade);
+                }
+                if (newTrade.getOrderStatus() != OrderStatus.EXECUTING){
+                    newTrade.setOrderStatus(OrderStatus.EXECUTING);
+                }
+                if(newTrade.getRemainingQuantity()==0){
+                    newTrade.setOrderStatus(OrderStatus.COMPLETE);
+                    tradeRepository.delete(newTrade);
+                }
+                if(newTrade.getOrderStatus() != trade.getOrderStatus() ){
+                    if(newTrade.getOrderStatus()== OrderStatus.COMPLETE)
+                        trade.setOrderStatus(OrderStatus.RESTING);
+                    else
+                        newTrade.setOrderStatus(OrderStatus.RESTING);
+                }
+  //          }).subscribe();
+            this.tradeRepository.save(trade).subscribe();
+            this.tradeRepository.save(newTrade).subscribe();
 //            if((remaining.getOrderStatus()==OrderStatus.EXECUTING && trade.getOrderStatus()==OrderStatus.COMPLETE)||(remaining.getOrderStatus()==OrderStatus.COMPLETE && trade.getOrderStatus()==OrderStatus.EXECUTING)){
 //                dis.dispose();
 //            }
         }
+
+
+    }
+    private int getSubtractedQuantity(Trade trade){
+        String strategy = trade.getOrderType();
+        int subtractedQuantity = 0;
+        switch(strategy){
+            case "5-10%":
+                subtractedQuantity = (int)(trade.getQuantity()* .10);
+                break;
+            case "10-20%":
+                subtractedQuantity = (int)(trade.getQuantity()*.20);
+                break;
+
+        }
+        return subtractedQuantity;
     }
 
 }
