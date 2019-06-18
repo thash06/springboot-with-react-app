@@ -1,4 +1,5 @@
 import React, {Component} from 'react';
+import { NavLink } from 'react-router-dom';
 import BuyComponent from '../components/BuyComponent';
 import SellComponent from '../components/SellComponent';
 import NewOrder from './NewOrder';
@@ -11,7 +12,7 @@ class ExistingOrder extends Component {
 
     renderBuySell=(item)=>{
         return(
-                <div key = {item.id.toString()} style = {{display:'flex', marginBottom:'120px'}} >
+                <div key = {item.id.toString()} style = {{display:'flex', marginTop:'20px', marginBottom:'120px'}} >
                     <div style = {{width:'50%'}} >
                             {/* item.buyData.map((data, index) =>{
                                 return(
@@ -53,6 +54,10 @@ class ExistingOrder extends Component {
                 </div>
             </div>
             {this.state.isOrderBtn ? <NewOrder ticker={item.ticker} refreshTrades={this.props.refreshTrades}/>:null}
+            <h5 style={{paddingLeft:'30px'}}>
+                2 matches . 
+                <NavLink exact to="/executions"> 7 executions</NavLink>
+            </h5>
             {                
                 this.renderBuySell(item)   
             }

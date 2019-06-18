@@ -109,7 +109,7 @@ class NewOrder extends Component {
                     onChange={this.handleChange}
                     options={options}
                 /> :
-                <input className = 'input-box' style={{background:'#304f64', border:'none'}} type="text" value={this.props.ticker} disabled />
+                <input className = 'input-box' style={{background:'#304f64', border:'none', margin:'0'}} type="text" value={this.props.ticker} disabled />
                 }
                 <input placeholder = "Quantity" onChange = {(e)=>this.setState({quantity:e.target.value})}  className = 'input-box' type="text" value={this.state.quantity} />  
                 <Select
