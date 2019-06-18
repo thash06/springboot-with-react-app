@@ -37,6 +37,14 @@ const options = [
       background: "rgb(255, 255, 255)",
       color: "rgb(0, 0, 0)"
     }),
+    placeholder: base => ({
+        ...base,
+        color: "rgb(223, 212, 212)"
+      }),
+    singleValue: base => ({
+      ...base,
+      color: "rgb(255, 255, 255)"
+    }),
   };
 class NewOrder extends Component {
     
@@ -45,7 +53,7 @@ class NewOrder extends Component {
         this.state = { 
             ticker:'',
             quantity:'',
-            orderType:'',
+            orderType:'Invalid',
             buy:"BUY",
             sell:"SELL",
             side:"BUY"
@@ -68,9 +76,13 @@ class NewOrder extends Component {
             quantity: this.state.quantity,
             remainingQuantity: this.state.quantity,
             side: this.state.side,
-            ticker: this.state.ticker.value,
+            ticker: this.state.ticker.value || this.props.ticker || 'GOOG',
             orderType: this.state.orderType.value,
             orderStatus: this.state.orderStatus
+        }
+
+        if(!trade.quantity || !trade.side || !trade.ticker || !trade.orderType) {
+            return alert("Please enter valid values");
         }
 
         console.log(trade);
@@ -89,14 +101,16 @@ class NewOrder extends Component {
         
         return (  
             <div className = 'new-order-view'>
-                
+                {(this.props.showSelect) ?
                 <Select
                     // className = 'select-box'
                     styles={customStyles}
                     value={this.state.ticker}
                     onChange={this.handleChange}
                     options={options}
-                />
+                /> :
+                <input className = 'input-box' style={{background:'#304f64', border:'none'}} type="text" value={this.props.ticker} disabled />
+                }
                 <input placeholder = "Quantity" onChange = {(e)=>this.setState({quantity:e.target.value})}  className = 'input-box' type="text" value={this.state.quantity} />  
                 <Select
                     styles={customStyles}

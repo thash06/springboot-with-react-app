@@ -11,7 +11,7 @@ class ExistingOrder extends Component {
 
     renderBuySell=(item)=>{
         return(
-                <div key = {item.id.toString()} style = {{display:'flex'}} >
+                <div key = {item.id.toString()} style = {{display:'flex', marginBottom:'120px'}} >
                     <div style = {{width:'50%'}} >
                             {/* item.buyData.map((data, index) =>{
                                 return(
@@ -44,7 +44,7 @@ class ExistingOrder extends Component {
         return (
             <div>
             <div key = {item.id.toString()} className = 'App-header'>
-                <div style = {{ width:'100%', alignItems:'center', display:'flex', justifyContent:"space-between",margin:30}}>
+                <div style = {{height:'70px', width:'100%', alignItems:'center', display:'flex', justifyContent:'space-between',margin:'0 30px'}}>
                     <div>
                         <p className='txt-0'>{item.ticker}</p>
                         <p className='txt-1'>{item.ticker}</p>
@@ -52,7 +52,7 @@ class ExistingOrder extends Component {
                     <button onClick = {this.newOrderBtnClicked} className='btn-order'>NEW ORDER</button> 
                 </div>
             </div>
-            {this.state.isOrderBtn ? <NewOrder refreshTrades={this.props.refreshTrades}/>:null}
+            {this.state.isOrderBtn ? <NewOrder ticker={item.ticker} refreshTrades={this.props.refreshTrades}/>:null}
             {                
                 this.renderBuySell(item)   
             }

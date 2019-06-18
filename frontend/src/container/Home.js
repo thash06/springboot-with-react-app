@@ -28,10 +28,13 @@ class Home extends Component {
         //     headerInput:e.target.value,
         //     trades: this.trades.filter((trade) => trade.ticker.index(e.target.value) > -1)
         // })
-        let headerInput = e.target.value;        
+        let headerInput = e.target.value;
+        if(!!headerInput) {
+            headerInput = headerInput.toLowerCase();
+        }
 
         this.setState(function(prevState, props){
-            let trades = prevState.tradesCopy.filter((trade) => trade.ticker.indexOf(headerInput) > -1)
+            let trades = prevState.tradesCopy.filter((trade) => trade.ticker.toLowerCase().indexOf(headerInput) > -1)
             return {headerInput,
                     trades}
         });
@@ -91,7 +94,7 @@ class Home extends Component {
             <div>
                 <AppHeader headerInput={this.state.headerInput}  handleTFChange= {this.handleTFChange} submitBtnClick={this.submitBtnClick} />
                 <div style = {{marginTop: 70}}>
-                {this.state.isOrderBtn ? <NewOrder refreshTrades={this.refreshTrades}/>:null}                    
+                {this.state.isOrderBtn ? <NewOrder showSelect={true} refreshTrades={this.refreshTrades}/>:null}                    
                     {
                         this.state.trades.map(
                             trade => 
