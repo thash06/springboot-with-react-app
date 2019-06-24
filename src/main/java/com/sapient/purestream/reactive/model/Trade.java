@@ -1,5 +1,6 @@
 package com.sapient.purestream.reactive.model;
 
+import com.sapient.purestream.reactive.constants.NumConstants;
 import com.sapient.purestream.reactive.constants.OrderStatus;
 import com.sapient.purestream.reactive.constants.Side;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class Trade {
     private OrderStatus orderStatus;
     private Date orderCreated;
     private Double percentage;
+    private boolean priority;
 
     public Trade() {
     }

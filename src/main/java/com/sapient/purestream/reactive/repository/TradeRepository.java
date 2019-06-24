@@ -17,4 +17,7 @@ public interface TradeRepository extends ReactiveCrudRepository<Trade, Long> {
 
     @Query("{'ticker':?0}")
     Flux<Trade> findByTicker(String ticker);
+
+    @Query("{'quantity':?0}")
+    Flux<Trade> findByQuantity(int quantity);
 }

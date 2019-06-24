@@ -1,5 +1,6 @@
 package com.sapient.purestream.reactive.controller;
 
+import com.sapient.purestream.reactive.constants.NumConstants;
 import com.sapient.purestream.reactive.constants.OrderStatus;
 import com.sapient.purestream.reactive.exceptions.ResourceNotFoundException;
 import com.sapient.purestream.reactive.model.Trade;
@@ -57,6 +58,7 @@ public class TradeController {
                             trade.setOrderCreated(new Date());
                             trade.setOrderStatus(OrderStatus.NEW);
                             trade.setPercentage((1-((double)trade.getRemainingQuantity()/(double)trade.getQuantity()))*100);
+                            trade.setPriority(trade.getQuantity() >= NumConstants.PRIORITY_QUANTITY);
                     return tradeService.createTrade(trade);
                         }
                 )

@@ -42,6 +42,7 @@ public class ConsolidatedTapeService {
     private void initializeQuotes() {
         this.prices.add(new Quote("GOOG", 847.24));
         this.prices.add(new Quote("MSFT", 65.11));
+        this.prices.add(new Quote("APPL", 197.87));
     }
 
 
