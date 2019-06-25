@@ -91,9 +91,9 @@ public class TradeService {
         LOG.info(" Matched Trades for {} are {}", newTrade, matchedTrades);
 //        quoteStream.takeUntil(q->newTrade.getRemainingQuantity()==0).doOnNext(qt -> this.executeTrade(qt, newTrade)).subscribe();
 
-
-        executeTradeHelper(quoteStream, newTrade, priorityTrades);
-        if(priorityTrades.subscribe().isDisposed() && newTrade.getRemainingQuantity() >0)
+//        executeTradeHelper(quoteStream, newTrade, matchedTrades);
+        executeTradeHelper(quoteStream, newTrade, priorityTrades.switchIfEmpty(normalTrades));
+        if(priorityTrades.subscribe().isDisposed() && newTrade.getRemainingQuantity() > 0)
             executeTradeHelper(quoteStream,newTrade,normalTrades);
          return   matchedTrades;
     }
