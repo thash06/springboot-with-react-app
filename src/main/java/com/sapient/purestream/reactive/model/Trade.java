@@ -7,6 +7,7 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.sql.Time;
 import java.util.Date;
 
 @Document(collection = "Trades")
@@ -18,11 +19,15 @@ public class Trade {
     private Integer remainingQuantity = -1;
     private Side side;
     private String ticker;
+    private String fullName;
     private String orderType;
     private OrderStatus orderStatus;
     private Date orderCreated;
     private Double percentage;
     private boolean priority;
+    private int executionQuantity;
+    private double marketSalePrice;
+    private Time MarketSaleTime;
 
     public Trade() {
     }

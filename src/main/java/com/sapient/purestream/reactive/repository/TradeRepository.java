@@ -15,6 +15,9 @@ public interface TradeRepository extends ReactiveCrudRepository<Trade, Long> {
     @Query("{'$and' : [{'orderType' : ?0}, {'side' : {$ne: ?1}}, {'ticker':?2}] }")
     Flux<Trade> findByOrdertypeSideAndTicker(String orderType, String side, String ticker);
 
+    @Query("{'$and' : [{'orderType' : ?0}, {'ticker':?1}] }")
+    Flux<Trade> findByOrderTypeAndTicker(String orderType, String ticker);
+
     @Query("{'ticker':?0}")
     Flux<Trade> findByTicker(String ticker);
 

@@ -11,7 +11,7 @@ const options = [
   ];
   const optionsOrderType = [
     { value: '5-10%', label: '5-10% POV' },
-    { value: 'Invalid', label: '10-20% POV' },
+    { value: '10-20%', label: '10-20% POV' },
     { value: 'Invalid', label: '10-30% POV' },
     { value: 'Invalid', label: 'Liquidity Seeking' },
     { value: 'Invalid', label: 'Mach 2' },
@@ -69,8 +69,7 @@ class NewOrder extends Component {
 
     onSubmit = () => {
         if(this.state.orderType === "Invalid"){
-            alert("That order type has not been implemented yet.");
-            return;
+            return alert("That order type has not been implemented yet.");
         }
         let trade = {
             quantity: this.state.quantity,

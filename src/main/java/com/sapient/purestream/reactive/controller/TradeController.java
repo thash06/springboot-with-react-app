@@ -2,10 +2,15 @@ package com.sapient.purestream.reactive.controller;
 
 import com.sapient.purestream.reactive.constants.NumConstants;
 import com.sapient.purestream.reactive.constants.OrderStatus;
+import com.sapient.purestream.reactive.constants.TradeStrategy;
+import com.sapient.purestream.reactive.entity.TickerStrategy;
 import com.sapient.purestream.reactive.exceptions.ResourceNotFoundException;
+import com.sapient.purestream.reactive.model.ConsolidatedTape;
 import com.sapient.purestream.reactive.model.Trade;
+import com.sapient.purestream.reactive.service.ConsolidatedTapeService;
 import com.sapient.purestream.reactive.service.MongoSequenceGeneratorService;
 import com.sapient.purestream.reactive.service.TradeService;
+import com.sun.javafx.collections.MappingChange;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +22,9 @@ import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotNull;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author tarhashm
@@ -36,16 +44,25 @@ public class TradeController {
     }
 
     @GetMapping("/showAll")
-    public ResponseEntity<Object> displayAll() {
+    public ResponseEntity<Map> displayAll() {
         LOG.info(" displayAll orders ...");
-        return new ResponseEntity<>(this.tradeService.displayTrades(), HttpStatus.OK);
+        Map<TickerStrategy, List<Trade>> trades = new HashMap<>();
+        trades.put(new TickerStrategy("GOOG", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.FIVE_TEN_PCT_POV.toString(), "GOOG").toIterable());
+        trades.put(new TickerStrategy("GOOG", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.TEN_TWENTY_PCT_POV.toString(), "GOOG").toIterable());
+        trades.put(new TickerStrategy("MSFT", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.FIVE_TEN_PCT_POV.toString(), "MSFT").toIterable());
+        trades.put(new TickerStrategy("MSFT", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.TEN_TWENTY_PCT_POV.toString(), "MSFT").toIterable());
+        trades.put(new TickerStrategy("APPL", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.FIVE_TEN_PCT_POV.toString(), "APPL").toIterable());
+        trades.put(new TickerStrategy("APPL", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.TEN_TWENTY_PCT_POV.toString(), "APPL").toIterable());
+
+        return new ResponseEntity<>(trades, HttpStatus.OK);
     }
 
-    @GetMapping("/getTrades/{ticker}")
-    public ResponseEntity<Object> getTrades(@PathVariable @NotNull String ticker) {
+    @GetMapping("/getTrades/{ticker}/{orderType}")
+    public ResponseEntity<Map> getTrades(@PathVariable @NotNull String ticker, @PathVariable @NotNull String orderType) {
         LOG.info(" displayAll orders ...");
-
-        return new ResponseEntity<>(this.tradeService.findByTicker(ticker), HttpStatus.OK);
+        Map<TickerStrategy, List<Trade>> trades = new HashMap<>();
+        trades.put(new TickerStrategy(ticker, orderType), (List) this.tradeService.findByOrderTypeAndTicker(orderType, ticker));
+        return new ResponseEntity<>(trades, HttpStatus.OK);
     }
 
     @PostMapping("/trade")
@@ -59,6 +76,7 @@ public class TradeController {
                             trade.setOrderStatus(OrderStatus.NEW);
                             trade.setPercentage((1-((double)trade.getRemainingQuantity()/(double)trade.getQuantity()))*100);
                             trade.setPriority(trade.getQuantity() >= NumConstants.PRIORITY_QUANTITY);
+                            trade.setExecutionQuantity(tradeService.getSubtractedQuantity(trade));
                     return tradeService.createTrade(trade);
                         }
                 )

@@ -69,6 +69,9 @@ public class TradeService {
     public Flux<Trade> findByOrderTypeSideTicker(String orderType, String side, String ticker) {
         return this.tradeRepository.findByOrdertypeSideAndTicker(orderType, side, ticker);
     }
+    public Flux<Trade> findByOrderTypeAndTicker(String orderType, String ticker) {
+        return this.tradeRepository.findByOrderTypeAndTicker(orderType, ticker);
+    }
 
     /*
         Main method - will take trades and try to match
