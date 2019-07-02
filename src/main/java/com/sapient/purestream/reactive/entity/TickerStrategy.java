@@ -13,5 +13,12 @@ public class TickerStrategy {
         this.strategy = strategy;
     }
 
+    @Override
+    public String toString() {
+        return "TickerStrategy{" +
+                "ticker='" + ticker + '\'' +
+                ", strategy='" + strategy + '\'' +
+                '}';
+    }
 }
 

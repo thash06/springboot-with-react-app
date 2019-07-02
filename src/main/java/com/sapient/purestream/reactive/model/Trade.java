@@ -54,4 +54,24 @@ public class Trade {
 
         return hash;
     }
+
+    @Override
+    public String toString() {
+        return "Trade{" +
+                "id=" + id +
+                ", quantity=" + quantity +
+                ", remainingQuantity=" + remainingQuantity +
+                ", side=" + side +
+                ", ticker='" + ticker + '\'' +
+                ", fullName='" + fullName + '\'' +
+                ", orderType='" + orderType + '\'' +
+                ", orderStatus=" + orderStatus +
+                ", orderCreated=" + orderCreated +
+                ", percentage=" + percentage +
+                ", priority=" + priority +
+                ", executionQuantity=" + executionQuantity +
+                ", marketSalePrice=" + marketSalePrice +
+                ", marketSaleTime=" + marketSaleTime +
+                '}';
+    }
 }

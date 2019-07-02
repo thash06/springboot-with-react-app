@@ -59,7 +59,8 @@ class Home extends Component {
     refreshTrades() {
         TradeDataService.retrieveAllTrades().then(
             response => {
-                this.setState({trades: response.data, tradesCopy: response.data})
+                this.setState({trades: response.
+                data, tradesCopy: response.data})
             }
         )
     }

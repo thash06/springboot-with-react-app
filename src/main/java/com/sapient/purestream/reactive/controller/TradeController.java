@@ -69,10 +69,10 @@ public class TradeController {
 //    }
 
     @GetMapping("/getTrades/{ticker}/{orderType}")
-    public ResponseEntity<Map> getTrades(@PathVariable @NotNull String ticker, @PathVariable @NotNull String orderType) {
+    public ResponseEntity<Map<TickerStrategy, Flux<Trade>>>getTrades(@PathVariable @NotNull String ticker, @PathVariable @NotNull String orderType){
         LOG.info(" displayAll orders ...");
-        Map<TickerStrategy, List<Trade>> trades = new HashMap<>();
-        trades.put(new TickerStrategy(ticker, orderType), (List) this.tradeService.findByOrderTypeAndTicker(orderType, ticker));
+        Map<TickerStrategy, Flux<Trade>> trades = new HashMap<>();
+        trades.put(new TickerStrategy(ticker, orderType), this.tradeService.findByOrderTypeAndTicker(orderType, ticker));
         return new ResponseEntity<>(trades, HttpStatus.OK);
     }
 
