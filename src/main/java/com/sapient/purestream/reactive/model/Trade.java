@@ -1,13 +1,11 @@
 package com.sapient.purestream.reactive.model;
 
-import com.sapient.purestream.reactive.constants.NumConstants;
 import com.sapient.purestream.reactive.constants.OrderStatus;
 import com.sapient.purestream.reactive.constants.Side;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.sql.Time;
 import java.util.Date;
 
 @Document(collection = "Trades")
@@ -27,7 +25,7 @@ public class Trade {
     private boolean priority;
     private int executionQuantity;
     private double marketSalePrice;
-    private Time MarketSaleTime;
+    private Date marketSaleTime;
 
     public Trade() {
     }

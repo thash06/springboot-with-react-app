@@ -5,12 +5,9 @@ import com.sapient.purestream.reactive.constants.OrderStatus;
 import com.sapient.purestream.reactive.constants.TradeStrategy;
 import com.sapient.purestream.reactive.entity.TickerStrategy;
 import com.sapient.purestream.reactive.exceptions.ResourceNotFoundException;
-import com.sapient.purestream.reactive.model.ConsolidatedTape;
 import com.sapient.purestream.reactive.model.Trade;
-import com.sapient.purestream.reactive.service.ConsolidatedTapeService;
 import com.sapient.purestream.reactive.service.MongoSequenceGeneratorService;
 import com.sapient.purestream.reactive.service.TradeService;
-import com.sun.javafx.collections.MappingChange;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,10 +18,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.constraints.NotNull;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author tarhashm
@@ -44,18 +38,35 @@ public class TradeController {
     }
 
     @GetMapping("/showAll")
-    public ResponseEntity<Map> displayAll() {
+    public ResponseEntity<Map<TickerStrategy, Flux<Trade>>> displayAll() {
         LOG.info(" displayAll orders ...");
-        Map<TickerStrategy, List<Trade>> trades = new HashMap<>();
-        trades.put(new TickerStrategy("GOOG", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.FIVE_TEN_PCT_POV.toString(), "GOOG").toIterable());
-        trades.put(new TickerStrategy("GOOG", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.TEN_TWENTY_PCT_POV.toString(), "GOOG").toIterable());
-        trades.put(new TickerStrategy("MSFT", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.FIVE_TEN_PCT_POV.toString(), "MSFT").toIterable());
-        trades.put(new TickerStrategy("MSFT", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.TEN_TWENTY_PCT_POV.toString(), "MSFT").toIterable());
-        trades.put(new TickerStrategy("APPL", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.FIVE_TEN_PCT_POV.toString(), "APPL").toIterable());
-        trades.put(new TickerStrategy("APPL", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), (List) this.tradeService.findByOrderTypeAndTicker(TradeStrategy.TEN_TWENTY_PCT_POV.toString(), "APPL").toIterable());
+        Map<TickerStrategy, Flux<Trade>> trades = new HashMap<>();
+        trades.put(new TickerStrategy("GOOG", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), getList(TradeStrategy.FIVE_TEN_PCT_POV, "GOOG"));
+        trades.put(new TickerStrategy("GOOG", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), getList(TradeStrategy.TEN_TWENTY_PCT_POV, "GOOG"));
+        trades.put(new TickerStrategy("MSFT", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), getList(TradeStrategy.FIVE_TEN_PCT_POV, "MSFT"));
+        trades.put(new TickerStrategy("MSFT", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), getList(TradeStrategy.TEN_TWENTY_PCT_POV, "MSFT"));
+        trades.put(new TickerStrategy("APPL", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), getList(TradeStrategy.FIVE_TEN_PCT_POV, "APPL"));
+        trades.put(new TickerStrategy("APPL", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), getList(TradeStrategy.TEN_TWENTY_PCT_POV, "APPL"));
 
         return new ResponseEntity<>(trades, HttpStatus.OK);
     }
+
+    private Flux<Trade> getList(TradeStrategy tradeStrategy, String ticker) {
+        List<Trade> tradeList = new ArrayList<>();
+//        Flux<Trade> tradeFlux = this.tradeService.displayTrades().filter(t -> t.getOrderType().equals(tradeStrategy) && t.getTicker().equals(ticker));
+        Flux<Trade> tradeFlux = this.tradeService.findByOrderTypeAndTicker(tradeStrategy.toString(), ticker).switchIfEmpty(Flux.empty());
+        return tradeFlux;
+    }
+
+
+//    @GetMapping("/getTrades/{ticker}/{orderType}")
+//    public ResponseEntity<Map<TickerStrategy, Flux<Trade>>> getTrades(@PathVariable @NotNull String ticker, @PathVariable @NotNull String orderType) {
+//        LOG.info(" displayAll orders ...");
+//        Map<TickerStrategy, Flux<Trade>> trades = new HashMap<>();
+//        trades.put(new TickerStrategy(ticker, orderType),
+//                this.tradeService.findByOrderTypeAndTicker(orderType, ticker).switchIfEmpty(Flux.empty()));
+//        return new ResponseEntity<>(trades, HttpStatus.OK);
+//    }
 
     @GetMapping("/getTrades/{ticker}/{orderType}")
     public ResponseEntity<Map> getTrades(@PathVariable @NotNull String ticker, @PathVariable @NotNull String orderType) {
