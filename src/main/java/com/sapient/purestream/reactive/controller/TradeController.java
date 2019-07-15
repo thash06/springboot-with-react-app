@@ -38,15 +38,21 @@ public class TradeController {
     }
 
     @GetMapping("/showAll")
-    public ResponseEntity<Map<TickerStrategy, Flux<Trade>>> displayAll() {
+    public ResponseEntity<Flux<Trade>> displayAll(){
         LOG.info(" displayAll orders ...");
+        return new ResponseEntity<>(tradeService.displayTrades(), HttpStatus.OK);
+    }
+
+    @GetMapping("/showAllReact")
+    public ResponseEntity<Map<TickerStrategy, Flux<Trade>>> displayAllReact() {
+        LOG.info(" displayAllReact orders ...");
         Map<TickerStrategy, Flux<Trade>> trades = new HashMap<>();
         trades.put(new TickerStrategy("GOOG", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), getList(TradeStrategy.FIVE_TEN_PCT_POV, "GOOG"));
         trades.put(new TickerStrategy("GOOG", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), getList(TradeStrategy.TEN_TWENTY_PCT_POV, "GOOG"));
         trades.put(new TickerStrategy("MSFT", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), getList(TradeStrategy.FIVE_TEN_PCT_POV, "MSFT"));
         trades.put(new TickerStrategy("MSFT", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), getList(TradeStrategy.TEN_TWENTY_PCT_POV, "MSFT"));
-        trades.put(new TickerStrategy("APPL", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), getList(TradeStrategy.FIVE_TEN_PCT_POV, "APPL"));
-        trades.put(new TickerStrategy("APPL", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), getList(TradeStrategy.TEN_TWENTY_PCT_POV, "APPL"));
+        trades.put(new TickerStrategy("AAPL", TradeStrategy.FIVE_TEN_PCT_POV.getValue()), getList(TradeStrategy.FIVE_TEN_PCT_POV, "AAPL"));
+        trades.put(new TickerStrategy("AAPL", TradeStrategy.TEN_TWENTY_PCT_POV.getValue()), getList(TradeStrategy.TEN_TWENTY_PCT_POV, "AAPL"));
 
         return new ResponseEntity<>(trades, HttpStatus.OK);
     }
@@ -69,11 +75,9 @@ public class TradeController {
 //    }
 
     @GetMapping("/getTrades/{ticker}/{orderType}")
-    public ResponseEntity<Map<TickerStrategy, Flux<Trade>>>getTrades(@PathVariable @NotNull String ticker, @PathVariable @NotNull String orderType){
-        LOG.info(" displayAll orders ...");
-        Map<TickerStrategy, Flux<Trade>> trades = new HashMap<>();
-        trades.put(new TickerStrategy(ticker, orderType), this.tradeService.findByOrderTypeAndTicker(orderType, ticker));
-        return new ResponseEntity<>(trades, HttpStatus.OK);
+    public ResponseEntity<Flux<Trade>> getTrades(@PathVariable @NotNull String ticker, @PathVariable @NotNull String orderType){
+        LOG.info(" getTrades orders ...");
+        return new ResponseEntity<>(this.tradeService.findByOrderTypeAndTicker(orderType, ticker), HttpStatus.OK);
     }
 
     @PostMapping("/trade")
@@ -81,15 +85,15 @@ public class TradeController {
         LOG.info(" createTrade {} ...", trade);
         return Mono.just(mongoSequenceGeneratorService.generateSequence("Trades"))
                 .flatMap(seqNo -> {
-                    LOG.info("The seqNo is {}", seqNo);
-                            trade.setId(seqNo);
-                            trade.setOrderCreated(new Date());
-                            trade.setOrderStatus(OrderStatus.NEW);
-                            trade.setPercentage((1-((double)trade.getRemainingQuantity()/(double)trade.getQuantity()))*100);
-                            trade.setPriority(trade.getQuantity() >= NumConstants.PRIORITY_QUANTITY);
-                            trade.setExecutionQuantity(tradeService.getSubtractedQuantity(trade));
-                    return tradeService.createTrade(trade);
-                        }
+            LOG.info("The seqNo is {}", seqNo);
+            trade.setId(seqNo);
+            trade.setOrderCreated(new Date());
+            trade.setOrderStatus(OrderStatus.NEW);
+            trade.setPercentage((1-((double)trade.getRemainingQuantity()/(double)trade.getQuantity()))*100);
+            trade.setPriority(trade.getQuantity() >= NumConstants.PRIORITY_QUANTITY);
+            trade.setExecutionQuantity(tradeService.getSubtractedQuantity(trade));
+            return tradeService.createTrade(trade);
+        }
                 )
                 .map(newTrade -> {
                     this.getStreamingOrders(newTrade);

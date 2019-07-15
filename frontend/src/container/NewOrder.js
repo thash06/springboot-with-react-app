@@ -6,7 +6,7 @@ import TradeDataService from '../service/TradeDataService';
 
 const options = [
     { value: 'AMZN', label: 'Amazon Com, Inc' },
-    { value: 'APPL', label: 'Apple Inc' },
+    { value: 'AAPL', label: 'Apple Inc' },
     { value: 'GOOG', label: 'Alphabet Inc Class C' },
   ];
   const optionsOrderType = [
@@ -77,7 +77,8 @@ class NewOrder extends Component {
             side: this.state.side,
             ticker: this.state.ticker.value || this.props.ticker || 'GOOG',
             orderType: this.state.orderType.value,
-            orderStatus: this.state.orderStatus
+            orderStatus: this.state.orderStatus,
+            fullName: this.state.ticker.label
         }
 
         if(!trade.quantity || !trade.side || !trade.ticker || !trade.orderType) {
